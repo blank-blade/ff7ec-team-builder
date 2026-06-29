@@ -1,0 +1,74 @@
+name: Build and publish gh-pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages-branch-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Build static app for project Pages path
+        env:
+          VITE_BASE_PATH: /ff7ec-team-builder/
+        run: npm run build
+
+      - name: Assert built asset paths use project base
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Eq 'src="/assets/|href="/assets/' dist/index.html; then
+            echo 'dist/index.html still contains root-relative /assets paths.' >&2
+            echo 'Expected asset paths under /ff7ec-team-builder/assets/ for GitHub project Pages.' >&2
+            exit 1
+          fi
+          grep -Eq '/ff7ec-team-builder/assets/' dist/index.html
+
+      - name: Publish dist to gh-pages branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          rm -rf /tmp/ff7ec-gh-pages
+          mkdir -p /tmp/ff7ec-gh-pages
+          cp -a "$GITHUB_WORKSPACE/dist/." /tmp/ff7ec-gh-pages/
+          touch /tmp/ff7ec-gh-pages/.nojekyll
+
+          cd /tmp/ff7ec-gh-pages
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b gh-pages
+          git add -A
+          git commit -m "Deploy ${GITHUB_SHA}"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages:gh-pages

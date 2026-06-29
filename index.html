@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FF7EC Team Builder</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <main class="mx-auto max-w-[1800px] px-4 py-4 sm:px-5 lg:px-6 lg:py-6">
+      <header class="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 dark:border-slate-700 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h1 class="text-3xl font-black tracking-tight text-slate-950 dark:text-slate-50 sm:text-4xl">FF7EC Team Builder</h1>
+          <p class="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Use the bundled all-owned dataset, or paste a public Google Sheet URL to override it.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <label class="field-label min-w-36">
+            Theme
+            <select id="themeMode" class="field-input compact-input">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
+          <button id="copyJsonButton" class="soft-button self-end" disabled>Copy JSON</button>
+        </div>
+      </header>
+
+      <div class="app-shell">
+        <aside class="space-y-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-auto lg:pr-1">
+          <section class="panel">
+            <div class="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <h2 class="panel-title">Source</h2>
+                <p class="panel-subtitle">Leave blank to use the bundled all-owned dataset.</p>
+              </div>
+              <p id="status" class="shrink-0 text-xs font-black text-slate-500 dark:text-slate-300">Ready.</p>
+            </div>
+            <div class="grid gap-3">
+              <label class="field-label">
+                Public Google Sheet URL or ID
+                <input id="sheetUrl" class="field-input" placeholder="Optional Google Sheet override" />
+              </label>
+              <label class="field-label">
+                Sheet tab name
+                <input id="sheetName" class="field-input" value="Equipments" />
+              </label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="mb-3">
+              <h2 class="panel-title">Enemy</h2>
+              <p class="panel-subtitle">Choose weakness and assumptions. Effect targets update automatically.</p>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+              <label class="field-label">
+                Quick preset
+                <select id="preset" class="field-input">
+                  <option value="custom">Custom</option>
+                  <option value="phys-fire">Physical / Fire</option>
+                  <option value="phys-ice">Physical / Ice</option>
+                  <option value="phys-lightning">Physical / Lightning</option>
+                  <option value="phys-wind">Physical / Wind</option>
+                  <option value="phys-water">Physical / Water</option>
+                  <option value="phys-earth">Physical / Earth</option>
+                  <option value="mag-fire">Magical / Fire</option>
+                  <option value="mag-ice">Magical / Ice</option>
+                  <option value="mag-lightning">Magical / Lightning</option>
+                  <option value="mag-wind">Magical / Wind</option>
+                  <option value="mag-water">Magical / Water</option>
+                  <option value="mag-earth">Magical / Earth</option>
+                </select>
+              </label>
+              <label class="field-label">
+                Weak archetype
+                <select id="weakArch" class="field-input">
+                  <option value="">Any</option>
+                  <option value="phys">Physical</option>
+                  <option value="mag">Magical</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+              </label>
+              <label class="field-label">
+                Weak element
+                <select id="weakElem" class="field-input">
+                  <option value="">None / Any</option>
+                  <option value="fire">Fire</option>
+                  <option value="ice">Ice</option>
+                  <option value="lightning">Lightning</option>
+                  <option value="wind">Wind</option>
+                  <option value="water">Water</option>
+                  <option value="earth">Earth</option>
+                  <option value="nonelem">Non-elem</option>
+                </select>
+              </label>
+              <label class="field-label">
+                Damage assumption
+                <select id="damageAssumption" class="field-input">
+                  <option value="conservative">Conservative</option>
+                  <option value="optimistic">Optimistic</option>
+                  <option value="baseOnly">Base only</option>
+                </select>
+              </label>
+              <label class="checkbox-card sm:col-span-2 xl:col-span-1 2xl:col-span-2">
+                <input id="healerNeeded" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500" />
+                <span>Healer needed</span>
+              </label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="mb-3">
+              <h2 class="panel-title">Offensive targets</h2>
+              <p class="panel-subtitle">Inferred buffs and debuffs. Toggle off for immunities or priorities.</p>
+            </div>
+            <div id="offensiveEffects" class="space-y-4"></div>
+          </section>
+
+          <section class="panel">
+            <div class="mb-3">
+              <h2 class="panel-title">Defensive targets</h2>
+              <p class="panel-subtitle">Optional survivability targets. Defaults off.</p>
+            </div>
+            <div id="defensiveEffects" class="space-y-4"></div>
+          </section>
+
+          <section id="diagnostics" class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100"></section>
+        </aside>
+
+        <section class="min-w-0 space-y-4">
+          <section id="results" class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300">
+            Builds update automatically as inputs change.
+          </section>
+
+          <details class="rounded-2xl border border-slate-200 bg-slate-950 p-4 text-slate-100 dark:border-slate-700">
+            <summary class="cursor-pointer text-sm font-black text-slate-100">Raw recommendation JSON</summary>
+            <pre id="output" class="mt-4 max-h-[520px] overflow-auto whitespace-pre-wrap text-xs leading-6 text-slate-100"></pre>
+          </details>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

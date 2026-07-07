@@ -39,3 +39,132 @@
   .member-card.is-highlighted { @apply border-amber-300 shadow-sm ring-2 ring-amber-100 dark:border-amber-400 dark:ring-amber-900; }
   .member-card.is-dimmed { @apply opacity-35; }
 }
+
+/* Compact form controls: uniform height without making targets fiddly. */
+@layer components {
+  .field-label {
+    @apply gap-1 text-[11px] leading-4;
+  }
+
+  .field-input {
+    @apply min-h-9 rounded-xl px-3 py-1.5 text-sm leading-5;
+  }
+
+  select.field-input {
+    @apply pr-8;
+  }
+
+  .compact-input {
+    @apply min-h-8 px-2 py-1 text-xs leading-5;
+  }
+
+  .soft-button {
+    @apply min-h-8 rounded-xl px-3 py-1.5 text-xs leading-5;
+  }
+
+  .checkbox-card {
+    @apply min-h-9 rounded-xl px-3 py-2 text-sm leading-5;
+  }
+
+  .checkbox-card input[type="checkbox"] {
+    @apply h-3.5 w-3.5;
+  }
+
+  .toggle-box {
+    @apply h-3.5 w-3.5 text-[10px] leading-none;
+  }
+
+  .effect-chip {
+    @apply px-2 py-0.5 text-[11px] leading-5;
+  }
+
+  .panel {
+    @apply p-3;
+  }
+
+  .panel-title {
+    @apply text-sm;
+  }
+
+  .panel-subtitle {
+    @apply text-xs leading-5;
+  }
+}
+
+/* Readable compact controls / pills.
+   This softens the previous compact pass: controls stay shorter, but labels
+   keep enough font size and horizontal padding to avoid cramped text. */
+@layer components {
+  .field-label {
+    @apply gap-1.5 text-xs leading-5;
+  }
+
+  .field-input {
+    @apply min-h-9 rounded-xl px-3 py-1.5 text-sm leading-5;
+  }
+
+  select.field-input {
+    @apply pr-8;
+  }
+
+  .compact-input {
+    @apply min-h-9 px-3 py-1.5 text-sm leading-5;
+  }
+
+  .soft-button {
+    @apply min-h-9 rounded-xl px-3 py-1.5 text-sm leading-5;
+  }
+
+  .checkbox-card {
+    @apply min-h-10 rounded-xl px-3 py-2 text-sm leading-5;
+  }
+
+  .checkbox-card input[type="checkbox"] {
+    @apply h-4 w-4;
+  }
+
+  .toggle-box {
+    @apply h-4 w-4 text-[11px] leading-none;
+  }
+
+  .effect-chip {
+    @apply rounded-full px-2.5 py-1 text-xs leading-5;
+  }
+
+  .panel {
+    @apply p-3.5;
+  }
+
+  .panel-title {
+    @apply text-sm;
+  }
+
+  .panel-subtitle {
+    @apply text-xs leading-5;
+  }
+}
+
+/* Less pill-shaped chips/pills, with readable padding.
+   Reducing radius helps long labels feel less cramped without shrinking text. */
+@layer components {
+  .effect-chip {
+    @apply rounded-md px-2.5 py-1 text-xs leading-5;
+  }
+
+  .soft-button {
+    @apply rounded-lg;
+  }
+
+  .field-input,
+  .compact-input {
+    @apply rounded-lg;
+  }
+
+  .checkbox-card {
+    @apply rounded-lg;
+  }
+
+  .toggle-box {
+    @apply rounded;
+  }
+}

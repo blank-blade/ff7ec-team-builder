@@ -1,4 +1,60 @@
-import { fetchSheetCsv, fetchSampleTsv, parseDelimited, validateEquipmentGrid } from './data/sheets.js';
+const EQUIPMENTS_SHEET_NAME = 'Equipments';
+const PRESETS_SHEET_NAME = 'Presets';
+function formatSourceMeta(source) {
+  if (!source) return 'Bundled data';
+
+  const parts = [];
+  const mode = String(source.mode || '').trim();
+
+  if (/bundled/i.test(mode)) {
+    parts.push('Bundled data');
+  } else if (/google|sheet|remote/i.test(mode)) {
+    parts.push('Google Sheet');
+  } else if (mode) {
+    parts.push(mode);
+  }
+
+  const equipmentCount = Number(source.equipmentCount || 0);
+  if (equipmentCount > 0) {
+    parts.push(`${equipmentCount} equipment row${equipmentCount === 1 ? '' : 's'}`);
+  }
+
+  const presetCount = Number(source.presetCount || 0);
+  if (presetCount > 0) {
+    parts.push(`${presetCount} preset${presetCount === 1 ? '' : 's'}`);
+  } else {
+    parts.push('no presets');
+  }
+
+  return parts.join(' · ');
+}
+
+function setSourceMeta(source) {
+  const node = $('sourceMeta');
+  if (node) node.textContent = formatSourceMeta(source);
+}
+
+
+function buildStatusMessage(count) {
+  const n = Number(count) || 0;
+  if (n === 0) return 'No matching teams found. Try loosening a target or changing the enemy profile.';
+  if (n === 1) return '1 recommended team is ready.';
+  return `${n} recommended teams are ready.`;
+}
+
+function friendlyFailureMessage(error) {
+  const detail = error && error.message ? String(error.message) : '';
+  if (/fetch|network|failed to load|cors/i.test(detail)) {
+    return 'Could not load the equipment data. Check the sheet link or your connection.';
+  }
+  if (/header|column|tsv|csv|parse|validation/i.test(detail)) {
+    return 'The equipment data could not be read. Check the sheet columns and pasted values.';
+  }
+  return 'Could not make recommendations. Check the selected targets or source data.';
+}
+
+
+import { fetchSheetCsv, fetchSampleTsv, fetchSamplePresetsTsv, parseDelimited, validateEquipmentGrid, validatePresetGrid, normalizePresetHeader } from './data/sheets.js';
 import { recommendTeamsJson } from './core/recommendation.js';
 
 const $ = (id) => document.getElementById(id);
@@ -8,24 +64,24 @@ const EFFECT_DOMAIN = { OFFENSE: 'offense', DEFENSE: 'defense' };
 const ELEMENT_LABEL = { fire: 'Fire', ice: 'Ice', lightning: 'Lightning', wind: 'Wind', water: 'Water', earth: 'Earth', nonelem: 'Non-elem' };
 const ARCH_LABEL = { phys: 'Physical', mag: 'Magical', hybrid: 'Hybrid' };
 
-const PRESETS = {
-  'phys-fire': { weakArch: 'phys', weakElem: 'fire', healerNeeded: true },
-  'phys-ice': { weakArch: 'phys', weakElem: 'ice', healerNeeded: true },
-  'phys-lightning': { weakArch: 'phys', weakElem: 'lightning', healerNeeded: true },
-  'phys-wind': { weakArch: 'phys', weakElem: 'wind', healerNeeded: true },
-  'phys-water': { weakArch: 'phys', weakElem: 'water', healerNeeded: true },
-  'phys-earth': { weakArch: 'phys', weakElem: 'earth', healerNeeded: true },
-  'mag-fire': { weakArch: 'mag', weakElem: 'fire', healerNeeded: true },
-  'mag-ice': { weakArch: 'mag', weakElem: 'ice', healerNeeded: true },
-  'mag-lightning': { weakArch: 'mag', weakElem: 'lightning', healerNeeded: true },
-  'mag-wind': { weakArch: 'mag', weakElem: 'wind', healerNeeded: true },
-  'mag-water': { weakArch: 'mag', weakElem: 'water', healerNeeded: true },
-  'mag-earth': { weakArch: 'mag', weakElem: 'earth', healerNeeded: true },
+const QUICK_PRESETS = {
+  'phys-fire': { label: 'Physical / Fire', weakArch: 'phys', weakElem: 'fire', healerNeeded: true },
+  'phys-ice': { label: 'Physical / Ice', weakArch: 'phys', weakElem: 'ice', healerNeeded: true },
+  'phys-lightning': { label: 'Physical / Lightning', weakArch: 'phys', weakElem: 'lightning', healerNeeded: true },
+  'phys-wind': { label: 'Physical / Wind', weakArch: 'phys', weakElem: 'wind', healerNeeded: true },
+  'phys-water': { label: 'Physical / Water', weakArch: 'phys', weakElem: 'water', healerNeeded: true },
+  'phys-earth': { label: 'Physical / Earth', weakArch: 'phys', weakElem: 'earth', healerNeeded: true },
+  'mag-fire': { label: 'Magical / Fire', weakArch: 'mag', weakElem: 'fire', healerNeeded: true },
+  'mag-ice': { label: 'Magical / Ice', weakArch: 'mag', weakElem: 'ice', healerNeeded: true },
+  'mag-lightning': { label: 'Magical / Lightning', weakArch: 'mag', weakElem: 'lightning', healerNeeded: true },
+  'mag-wind': { label: 'Magical / Wind', weakArch: 'mag', weakElem: 'wind', healerNeeded: true },
+  'mag-water': { label: 'Magical / Water', weakArch: 'mag', weakElem: 'water', healerNeeded: true },
+  'mag-earth': { label: 'Magical / Earth', weakArch: 'mag', weakElem: 'earth', healerNeeded: true },
 };
 
 const state = {
   sheetUrl: '',
-  sheetName: 'Equipments',
+  sheetName: EQUIPMENTS_SHEET_NAME,
   preset: 'custom',
   weakArch: '',
   weakElem: '',
@@ -37,6 +93,9 @@ const state = {
 
 let equipmentRows = null;
 let loadedSourceKey = '';
+let extendedPresets = [];
+let loadedPresetSourceKey = '';
+let presetWarnings = [];
 let lastResult = null;
 let renderRequestId = 0;
 let pendingTimer = null;
@@ -55,7 +114,8 @@ function loadSavedState() {
   try {
     Object.assign(state, JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
   } catch (_) {}
-  for (const id of ['sheetUrl', 'sheetName', 'preset', 'weakArch', 'weakElem', 'damageAssumption', 'themeMode']) {
+  renderPresetOptions();
+  for (const id of ['sheetUrl', 'preset', 'weakArch', 'weakElem', 'damageAssumption', 'themeMode']) {
     if ($(id) && state[id] !== undefined) $(id).value = state[id];
   }
   $('healerNeeded').checked = Boolean(state.healerNeeded);
@@ -67,14 +127,14 @@ function persistState() {
 }
 
 function readControlsIntoState() {
-  for (const id of ['sheetUrl', 'sheetName', 'preset', 'weakArch', 'weakElem', 'damageAssumption', 'themeMode']) {
+  for (const id of ['sheetUrl', 'preset', 'weakArch', 'weakElem', 'damageAssumption', 'themeMode']) {
     state[id] = $(id).value;
   }
   state.healerNeeded = $('healerNeeded').checked;
 }
 
 function writeStateToControls() {
-  for (const id of ['sheetUrl', 'sheetName', 'preset', 'weakArch', 'weakElem', 'damageAssumption', 'themeMode']) {
+  for (const id of ['sheetUrl', 'preset', 'weakArch', 'weakElem', 'damageAssumption', 'themeMode']) {
     if ($(id)) $(id).value = state[id] || (id === 'themeMode' ? 'system' : '');
   }
   $('healerNeeded').checked = Boolean(state.healerNeeded);
@@ -85,11 +145,19 @@ function writeStateToControls() {
 function sourceKey() {
   const url = state.sheetUrl.trim();
   if (!url) return 'bundled-default';
-  return `sheet:${url}::${state.sheetName.trim() || 'Equipments'}`;
+  return `sheet:${url}::${state.sheetName.trim() || EQUIPMENTS_SHEET_NAME}`;
+}
+
+function presetSourceKey() {
+  const url = state.sheetUrl.trim();
+  return url ? `sheet:${url}::Presets` : 'bundled-presets';
 }
 
 function scheduleRecalculate({ reloadData = false } = {}) {
-  if (reloadData) loadedSourceKey = '';
+  if (reloadData) {
+    loadedSourceKey = '';
+    loadedPresetSourceKey = '';
+  }
   clearTimeout(pendingTimer);
   pendingTimer = setTimeout(() => recompute(), 180);
 }
@@ -249,11 +317,36 @@ async function loadRowsIfNeeded() {
   const usingSheet = Boolean(state.sheetUrl.trim());
   setStatus(usingSheet ? 'Loading sheet...' : 'Loading bundled data...');
   const raw = usingSheet
-    ? await fetchSheetCsv(state.sheetUrl, state.sheetName || 'Equipments')
+    ? await fetchSheetCsv(state.sheetUrl, EQUIPMENTS_SHEET_NAME)
     : await fetchSampleTsv();
   equipmentRows = parseDelimited(raw);
   loadedSourceKey = key;
   return equipmentRows;
+}
+
+async function loadExtendedPresetsIfNeeded() {
+  const key = presetSourceKey();
+  if (loadedPresetSourceKey === key) return extendedPresets;
+  presetWarnings = [];
+  let raw = '';
+  let mode = 'bundled Presets';
+  if (state.sheetUrl.trim()) {
+    try {
+      raw = await fetchSheetCsv(state.sheetUrl, PRESETS_SHEET_NAME);
+      mode = 'Google Sheet Presets';
+    } catch (_) {
+      raw = await fetchSamplePresetsTsv();
+    }
+  } else {
+    raw = await fetchSamplePresetsTsv();
+  }
+  const rows = parseDelimited(raw);
+  const validation = validatePresetGrid(rows);
+  extendedPresets = validation.ok ? parsePresetRows(rows) : [];
+  if (!validation.ok) presetWarnings = validation.warnings.map(w => `${mode}: ${w}`);
+  loadedPresetSourceKey = key;
+  renderPresetOptions();
+  return extendedPresets;
 }
 
 async function recompute() {
@@ -266,6 +359,7 @@ async function recompute() {
 
   try {
     const rows = await loadRowsIfNeeded();
+    await loadExtendedPresetsIfNeeded();
     if (requestId !== renderRequestId) return;
     if (!rows) {
       lastResult = null;
@@ -281,7 +375,7 @@ async function recompute() {
       const payload = { validation, rowCount: rows.length };
       lastResult = payload;
       $('output').textContent = JSON.stringify(payload, null, 2);
-      renderDiagnostics(validation.warnings, { equipmentCount: Math.max(0, rows.length - 1), mode: state.sheetUrl.trim() ? 'google sheet' : 'bundled default', validation });
+      renderDiagnostics([...validation.warnings, ...presetWarnings], { equipmentCount: Math.max(0, rows.length - 1), presetCount: extendedPresets.length, mode: state.sheetUrl.trim() ? 'google sheet' : 'bundled default', validation });
       renderEmpty('Schema validation failed. Fix the sheet columns and the app will recalculate.');
       setStatus('Schema validation failed.', 'error');
       return;
@@ -290,10 +384,12 @@ async function recompute() {
     const result = recommendTeamsJson(rows, effectOptionsForRecommendation());
     result.source = {
       mode: state.sheetUrl.trim() ? 'google sheet' : 'bundled default',
-      sheetName: state.sheetName || 'Equipments',
+      sheetName: EQUIPMENTS_SHEET_NAME,
       rowCount: rows.length,
       equipmentCount: Math.max(0, rows.length - 1),
       validation,
+      presetCount: extendedPresets.length,
+      presetWarnings,
     };
     result.selectedEffects = currentEffectDefs().filter(effect => state.selectedEffects[effect.id]);
     lastResult = result;
@@ -301,7 +397,8 @@ async function recompute() {
     $('copyJsonButton').disabled = false;
     renderEffectPanels(result);
     renderResult(result);
-    setStatus(`Done. ${result.builds.length} build(s) returned.`, 'ok');
+    setSourceMeta(result.source);
+    setStatus(buildStatusMessage(result.builds.length), 'ok');
   } catch (error) {
     if (requestId !== renderRequestId) return;
     const payload = { error: error.message, stack: error.stack };
@@ -314,23 +411,25 @@ async function recompute() {
 }
 
 function renderDiagnostics(warnings = [], source = {}) {
-  const allWarnings = [...warnings];
+  const allWarnings = [...warnings, ...presetWarnings];
   if (source?.validation?.warnings) allWarnings.push(...source.validation.warnings);
+  if (source?.presetWarnings) allWarnings.push(...source.presetWarnings);
   const unique = Array.from(new Set(allWarnings.filter(Boolean)));
   const diagnostics = $('diagnostics');
   if (!unique.length && !source?.equipmentCount) {
-    diagnostics.className = 'hidden rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100';
+    diagnostics.className = 'hidden rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100';
     diagnostics.innerHTML = '';
     return;
   }
-  diagnostics.className = 'rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100';
+  diagnostics.className = 'rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100';
   diagnostics.innerHTML = `
     <div class="flex flex-wrap items-center gap-2">
       <strong>Source</strong>
-      <span class="rounded-full bg-white px-2 py-1 font-bold dark:bg-amber-900/60 dark:text-amber-50">${escapeHtml(source.mode || 'loaded data')}</span>
-      ${source.equipmentCount !== undefined ? `<span class="rounded-full bg-white px-2 py-1 font-bold dark:bg-amber-900/60 dark:text-amber-50">${source.equipmentCount} equipment rows</span>` : ''}
+      <span class="rounded-md bg-white px-2 py-1 font-bold dark:bg-amber-900/60 dark:text-amber-50">${escapeHtml(source.mode || 'loaded data')}</span>
+      ${source.equipmentCount !== undefined ? `<span class="rounded-md bg-white px-2 py-1 font-bold dark:bg-amber-900/60 dark:text-amber-50">${source.equipmentCount} equipment rows</span>` : ''}
+      ${source.presetCount !== undefined ? `<span class="rounded-md bg-white px-2 py-1 font-bold dark:bg-amber-900/60 dark:text-amber-50">${source.presetCount} extended preset(s)</span>` : ''}
     </div>
-    ${unique.length ? `<div class="mt-3 flex flex-wrap gap-2">${unique.map(w => `<span class="rounded-full bg-amber-100 px-2 py-1 font-bold dark:bg-amber-900/60 dark:text-amber-50">${escapeHtml(w)}</span>`).join('')}</div>` : ''}
+    ${unique.length ? `<div class="mt-3 flex flex-wrap gap-2">${unique.map(w => `<span class="rounded-md bg-amber-100 px-2 py-1 font-bold dark:bg-amber-900/60 dark:text-amber-50">${escapeHtml(w)}</span>`).join('')}</div>` : ''}
   `;
 }
 
@@ -343,10 +442,6 @@ function renderResult(result) {
 
   $('results').className = 'grid gap-5';
   $('results').innerHTML = `
-    <section class="grid gap-4">
-      ${renderCoveredEffects(result, EFFECT_DOMAIN.OFFENSE)}
-      ${renderCoveredEffects(result, EFFECT_DOMAIN.DEFENSE)}
-    </section>
     <section class="grid gap-5">
       ${result.builds.map(renderBuildCard).join('')}
     </section>
@@ -355,62 +450,67 @@ function renderResult(result) {
 }
 
 function renderEmpty(message) {
-  $('results').className = 'rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400';
+  $('results').className = 'rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400';
   $('results').innerHTML = escapeHtml(message);
 }
 
 function renderCoveredEffects(result, domain) {
   const selected = currentEffectDefs().filter(effect => effect.domain === domain && state.selectedEffects[effect.id]);
+  if (!selected.length) return '';
+
   const coveredLabels = new Set();
   for (const build of result?.builds || []) parseCsvList(build.summary?.coverage).forEach(label => coveredLabels.add(normalizeEffectLabel(label)));
+
+  const coveredCount = selected.filter(effect => coveredLabels.has(normalizeEffectLabel(effect.label))).length;
   const buffs = selected.filter(effect => effect.kind === EFFECT_KIND.BUFF);
   const debuffs = selected.filter(effect => effect.kind === EFFECT_KIND.DEBUFF);
+
   return `
     <article class="panel">
-      <div class="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <h2 class="panel-title">${domain === EFFECT_DOMAIN.OFFENSE ? 'Covered offensive effects' : 'Covered defensive effects'}</h2>
-          <p class="panel-subtitle">Hover a covered effect to highlight matching equipment in the build cards.</p>
-        </div>
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <h2 class="panel-title">${domain === EFFECT_DOMAIN.OFFENSE ? 'Offensive coverage' : 'Defensive coverage'}</h2>
+        <span class="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-200">${coveredCount}/${selected.length}</span>
       </div>
-      <div class="grid gap-4">
-        ${renderCoveredGroup('Buffs', buffs, coveredLabels)}
-        ${renderCoveredGroup('Debuffs', debuffs, coveredLabels)}
+      <div class="flex flex-wrap gap-2">
+        ${renderCoveredGroup(buffs, coveredLabels)}
+        ${renderCoveredGroup(debuffs, coveredLabels)}
       </div>
     </article>
   `;
 }
 
-function renderCoveredGroup(title, effects, coveredLabels) {
-  if (!effects.length) return `<div><h3 class="mb-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">${title}</h3><span class="effect-chip effect-chip-neutral">None selected</span></div>`;
-  return `
-    <div>
-      <h3 class="mb-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">${title}</h3>
-      <div class="flex flex-wrap gap-2">
-        ${effects.map(effect => {
-          const covered = coveredLabels.has(normalizeEffectLabel(effect.label));
-          const kindClass = effect.kind === EFFECT_KIND.BUFF ? 'effect-chip-buff' : 'effect-chip-debuff';
-          return `<span class="effect-chip ${kindClass} ${covered ? '' : 'effect-chip-missing'}" data-effect-hover="${escapeHtml(normalizeEffectLabel(effect.label))}" title="Hover to highlight matching equipment"><span class="toggle-box" aria-hidden="true">${covered ? '✓' : ''}</span>${escapeHtml(effect.label)}</span>`;
-        }).join('')}
-      </div>
-    </div>
-  `;
+function renderCoveredGroup(effects, coveredLabels) {
+  if (!effects.length) return '';
+  return effects.map(effect => {
+    const covered = coveredLabels.has(normalizeEffectLabel(effect.label));
+    const kindClass = effect.kind === EFFECT_KIND.BUFF ? 'effect-chip-buff' : 'effect-chip-debuff';
+    return `<span class="effect-chip ${kindClass} ${covered ? '' : 'effect-chip-missing'}" data-effect-hover="${escapeHtml(normalizeEffectLabel(effect.label))}" data-effect-hover-source="coverage" title="Hover to highlight matching equipment"><span class="toggle-box" aria-hidden="true">${covered ? '✓' : ''}</span>${escapeHtml(effect.label)}</span>`;
+  }).join('');
 }
 
 function renderBuildCard(build, index) {
   const summary = build.summary || {};
+  const coverageStats = getBuildCoverageStats(build);
+  const buildNo = buildNumberLabel(build.build, index);
+  const stats = [
+    compactTeamPotency(summary.potency || ''),
+    coverageStats.total ? `Coverage ${coverageStats.covered}/${coverageStats.total} · Foundations ${coverageStats.foundationalCovered}/${coverageStats.foundationalTotal}` : '',
+  ].filter(Boolean);
+
   return `
     <article class="build-card">
-      <div class="flex flex-col gap-3 border-b border-slate-200 pb-4 dark:border-slate-700 md:flex-row md:items-start md:justify-between">
-        <div>
-          <p class="text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">${escapeHtml(build.build || `Build #${index + 1}`)}</p>
-          <h2 class="mt-1 text-xl font-black tracking-tight text-slate-950 dark:text-slate-50">${escapeHtml(summary.members || 'Team')}</h2>
+      <div class="flex flex-col gap-3 border-b border-slate-200 pb-4 dark:border-slate-700 xl:flex-row xl:items-center xl:justify-between">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            ${pill(buildNo, 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900')}
+            ${renderCompactTeam(build)}
+          </div>
         </div>
-        <div class="flex flex-wrap gap-2 md:justify-end">
-          ${pill(summary.potency, 'bg-indigo-50 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-200')}
-          ${pill(summary.score, 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200')}
+        <div class="flex flex-wrap gap-2 xl:justify-end">
+          ${stats.map(stat => pill(stat, stat.startsWith('Coverage') ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200' : 'bg-indigo-50 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-200')).join('')}
         </div>
       </div>
+      ${renderBuildCoverage(build)}
       <div class="mt-4 grid gap-4 lg:grid-cols-3">
         ${(build.members || []).map(renderMemberCard).join('')}
       </div>
@@ -418,43 +518,284 @@ function renderBuildCard(build, index) {
   `;
 }
 
+function buildNumberLabel(value, index) {
+  const text = String(value || '');
+  const match = text.match(/#?\s*(\d+)/);
+  return `#${match ? match[1] : index + 1}`;
+}
+
+function renderCompactTeam(build) {
+  const members = build.members || [];
+  if (members.length) {
+    return members.map(member => `
+      <span class="inline-flex min-w-0 items-center gap-1.5">
+        <span class="truncate text-lg font-black tracking-tight text-slate-950 dark:text-slate-50">${escapeHtml(member.character || 'Unknown')}</span>
+        ${rolePill(member.role || '')}
+      </span>
+    `).join('<span class="text-slate-300 dark:text-slate-600">/</span>');
+  }
+
+  return escapeHtml(build.summary?.members || 'Team');
+}
+
+function roleShort(role) {
+  const text = String(role || '').toLowerCase();
+  if (text.includes('dps')) return 'DPS';
+  if (text.includes('healer')) return 'Healer';
+  if (text.includes('support')) return 'Support';
+  return role || '';
+}
+
+function rolePill(role) {
+  const text = roleShort(role);
+  return text ? `<span class="inline-flex shrink-0 rounded-md bg-slate-100 px-2 py-1 text-xs font-black uppercase tracking-[0.10em] text-slate-600 dark:bg-slate-800 dark:text-slate-200">${escapeHtml(text)}</span>` : '';
+}
+
+function compactTeamPotency(value) {
+  const parts = String(value || '').split('/').map(x => x.trim()).filter(Boolean);
+  return parts.filter(part => !/\b(?:Anchor|Team DPS|DPS|Heal)\s+0%/i.test(part)).join(' / ');
+}
+
+function getBuildCoverageStats(build) {
+  const selected = currentEffectDefs().filter(effect => state.selectedEffects[effect.id]);
+  const coveredLabels = new Set(parseCsvList(build.summary?.coverage).map(normalizeEffectLabel));
+  const foundational = selected.filter(effect => effect.layer === 1 || effect.layer === 2);
+  return {
+    selected,
+    coveredLabels,
+    total: selected.length,
+    covered: selected.filter(effect => coveredLabels.has(normalizeEffectLabel(effect.label))).length,
+    foundationalTotal: foundational.length,
+    foundationalCovered: foundational.filter(effect => coveredLabels.has(normalizeEffectLabel(effect.label))).length,
+  };
+}
+
+function renderBuildCoverage(build) {
+  const stats = getBuildCoverageStats(build);
+  const selected = stats.selected;
+  if (!selected.length) return '';
+
+  const offense = selected.filter(effect => effect.domain === EFFECT_DOMAIN.OFFENSE);
+  const defense = selected.filter(effect => effect.domain === EFFECT_DOMAIN.DEFENSE);
+
+  const sections = [
+    renderBuildCoverageGroup('Offense', offense, stats.coveredLabels),
+    renderBuildCoverageGroup('Defense', defense, stats.coveredLabels),
+  ].filter(Boolean).join('');
+
+  if (!sections) return '';
+
+  return `
+    <section class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/70">
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h3 class="text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Build coverage</h3>
+        <span class="rounded-md bg-white px-2.5 py-1 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-200">${stats.covered}/${stats.total} covered · foundations ${stats.foundationalCovered}/${stats.foundationalTotal}</span>
+      </div>
+      <div class="grid gap-2">
+        ${sections}
+      </div>
+    </section>
+  `;
+}
+
+function renderBuildCoverageGroup(title, effects, coveredLabels) {
+  if (!effects.length) return '';
+  const coveredCount = effects.filter(effect => coveredLabels.has(normalizeEffectLabel(effect.label))).length;
+  return `
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="min-w-16 text-xs font-black text-slate-500 dark:text-slate-300">${title} ${coveredCount}/${effects.length}</span>
+      ${effects.map(effect => {
+        const covered = coveredLabels.has(normalizeEffectLabel(effect.label));
+        const kindClass = effect.kind === EFFECT_KIND.BUFF ? 'effect-chip-buff' : 'effect-chip-debuff';
+        return `<span class="effect-chip ${kindClass} ${covered ? '' : 'effect-chip-missing'}" data-effect-hover="${escapeHtml(normalizeEffectLabel(effect.label))}" data-effect-hover-source="coverage" title="Hover to highlight matching equipment"><span class="toggle-box" aria-hidden="true">${covered ? '✓' : ''}</span>${escapeHtml(effect.label)}</span>`;
+      }).join('')}
+    </div>
+  `;
+}
+
 function renderMemberCard(member) {
   const memberKey = normalizeEffectLabel(`${member.keyEffects || ''} ${member.weapon1 || ''} ${member.weapon2 || ''} ${member.ultimate || ''} ${member.gear || ''}`);
+  const headline = compactMemberPotency(member.potency || '');
+
   return `
     <section class="member-card" data-effect-index="${escapeHtml(memberKey)}">
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <h3 class="text-lg font-black text-slate-950 dark:text-slate-50">${escapeHtml(member.character || 'Unknown')}</h3>
-          <p class="text-sm font-extrabold text-slate-500 dark:text-slate-300">${escapeHtml(member.role || '')}</p>
-        </div>
-        ${pill(member.potency || '', 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200')}
+      <div class="flex flex-wrap items-center gap-2">
+        <h3 class="text-lg font-black text-slate-950 dark:text-slate-50">${escapeHtml(member.character || 'Unknown')}</h3>
+        ${rolePill(member.role || '')}
+        ${headline ? pill(headline, 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200') : ''}
       </div>
       <div class="mt-3 grid gap-2">
-        ${renderSlot('Weapon 1', member.weapon1)}
-        ${renderSlot('Weapon 2', member.weapon2)}
-        ${renderSlot('Ultimate', member.ultimate)}
+        ${renderSlot('Main', member.weapon1)}
+        ${renderSlot('Off', member.weapon2)}
+        ${renderSlot('Ult', member.ultimate)}
         ${renderSlot('Gear', member.gear)}
       </div>
-      <div class="mt-3">
+      ${member.keyEffects ? `<div class="mt-3">
         <h4 class="mb-2 text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Key effects</h4>
-        <div class="flex flex-wrap gap-1.5">${effectChipsFromCsv(member.keyEffects || 'None')}</div>
-      </div>
+        <div class="flex flex-wrap gap-1.5">${effectChipsFromCsv(member.keyEffects)}</div>
+      </div>` : ''}
       ${member.notes ? `<div class="mt-3 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-800 dark:text-slate-200"><strong class="text-slate-800 dark:text-slate-50">Passive notes:</strong> ${escapeHtml(member.notes)}</div>` : ''}
     </section>
   `;
 }
 
+function compactMemberPotency(value) {
+  const parts = String(value || '').split('/').map(x => x.trim()).filter(Boolean);
+  return parts.filter(part => !/\b(?:DPS|Heal)\s+0%/i.test(part)).join(' / ');
+}
+
+function slotLabelPill(label) {
+  return `<span class="inline-flex shrink-0 rounded-md bg-slate-100 px-2 py-1 text-xs font-black uppercase tracking-[0.10em] text-slate-500 dark:bg-slate-800 dark:text-slate-300">${escapeHtml(label)}</span>`;
+}
+
 function renderSlot(label, text) {
   const key = normalizeEffectLabel(text || '');
-  if (!text) return `<div class="equipment-card" data-effect-index=""><p class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">${label}</p><p class="mt-1 text-sm font-bold text-slate-400">None selected</p></div>`;
+  if (!text) {
+    return `
+      <div class="equipment-card" data-effect-index="">
+        <div class="flex flex-wrap items-center gap-2">
+          ${slotLabelPill(label)}
+          <span class="text-sm font-bold text-slate-400">None selected</span>
+        </div>
+      </div>
+    `;
+  }
+
   const [name, ...details] = String(text).split(' — ');
+  const chips = splitSlotDetails(details);
+  const activeHtml = chips.active.length ? `<div class="mt-2 flex flex-wrap gap-1.5">${renderSlotDetailChips(chips.active, false)}</div>` : '';
+  const inactiveHtml = chips.inactive.length ? `
+    <details class="mt-2 rounded-xl border border-slate-200 bg-slate-50 px-2 py-1.5 dark:border-slate-700 dark:bg-slate-900/60">
+      <summary class="cursor-pointer text-xs font-black text-slate-500 dark:text-slate-300">${chips.inactive.length} inactive / off-profile effect${chips.inactive.length === 1 ? '' : 's'}</summary>
+      <div class="mt-2 flex flex-wrap gap-1.5">${renderSlotDetailChips(chips.inactive, true)}</div>
+    </details>
+  ` : '';
+
   return `
     <div class="equipment-card" data-effect-index="${escapeHtml(key)}">
-      <p class="text-xs font-black uppercase tracking-[0.14em] text-slate-400">${label}</p>
-      <strong class="mt-1 block text-sm text-slate-950 dark:text-slate-50">${escapeHtml(name)}</strong>
-      ${details.length ? `<p class="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-200">${escapeHtml(details.join(' — '))}</p>` : ''}
+      <div class="flex min-w-0 flex-wrap items-center gap-2">
+        ${slotLabelPill(label)}
+        <strong class="min-w-0 truncate text-sm text-slate-950 dark:text-slate-50">${escapeHtml(name)}</strong>
+      </div>
+      ${activeHtml}
+      ${inactiveHtml}
     </div>
   `;
+}
+
+function splitSlotDetails(details) {
+  const rawParts = details
+    .flatMap(detail => String(detail || '').split(' | '))
+    .map(x => x.trim())
+    .filter(Boolean);
+
+  const mergedParts = mergeAllCureHealParts(rawParts);
+  const active = [];
+  const inactive = [];
+
+  mergedParts.forEach(part => {
+    if (/\[Non-impacting\]/i.test(part)) {
+      inactive.push(part.replace(/\s*\[Non-impacting\]/ig, '').trim());
+    } else {
+      active.push(part);
+    }
+  });
+
+  return { active, inactive };
+}
+
+function isAllCurePart(part) {
+  return /\ball\s+cure\b/i.test(part) ||
+    /\ball\s*\(\s*cure\s+spells?\s*\)/i.test(part) ||
+    /\bcura\s+all\b/i.test(part) ||
+    /\ball\s+cura\b/i.test(part) ||
+    /\bcure\s+materia\s+support\b/i.test(part);
+}
+
+function mergeAllCureHealParts(parts) {
+  const healIdx = parts.findIndex(part => /^Heal\s+\d+%/i.test(part));
+  const allCureIdx = parts.findIndex(isAllCurePart);
+
+  if (healIdx === -1 || allCureIdx === -1) return parts;
+
+  const healPart = parts[healIdx].replace(/\s*\[Non-impacting\]/ig, '').trim();
+  const allCurePart = parts[allCureIdx];
+
+  // Only merge the inferred all-cure heal presentation. Preserve normal weapon
+  // heals + unrelated support labels as-is.
+  const isLikelyInferredAllCureHeal =
+    /^Heal\s+60%/i.test(healPart) ||
+    /\binferred\b/i.test(allCurePart) ||
+    /\ball\s+cure\b/i.test(allCurePart) ||
+    /\bcura\s+all\b/i.test(allCurePart);
+
+  if (!isLikelyInferredAllCureHeal) return parts;
+
+  const merged = `${healPart} [All Cure]`;
+  return parts
+    .map((part, idx) => idx === healIdx ? merged : part)
+    .filter((_, idx) => idx !== allCureIdx);
+}
+
+
+function effectKindClassFromText(text) {
+  const normalized = normalizeEffectLabel(text || '');
+
+  // Debuff first. Important: "Amp. Debuffs" contains the substring "buff",
+  // so generic buff matching must never run before debuff matching.
+  if (
+    /\bamp\s*debuffs?\b/.test(normalized) ||
+    /\bdebuffs?\b/.test(normalized) ||
+    /\benfeeble\b/.test(normalized) ||
+    /\btorpor\b/.test(normalized) ||
+    /\bdown\b/.test(normalized) ||
+    /\bresist\s*down\b/.test(normalized) ||
+    /\bdmg\s*rcvd\s*up\b/.test(normalized) ||
+    /\bpatk\s*down\b/.test(normalized) ||
+    /\bmatk\s*down\b/.test(normalized) ||
+    /\bpdef\s*down\b/.test(normalized) ||
+    /\bmdef\s*down\b/.test(normalized)
+  ) {
+    return 'effect-chip-debuff';
+  }
+
+  if (
+    /\bamp\s*buffs?\b/.test(normalized) ||
+    /\bbuffs?\b/.test(normalized) ||
+    /\benliven\b/.test(normalized) ||
+    /\bhaste\b/.test(normalized) ||
+    /\bboost\b/.test(normalized) ||
+    /\bbonus\b/.test(normalized) ||
+    /\bpot\s*up\b/.test(normalized) ||
+    /\bpatk\s*up\b/.test(normalized) ||
+    /\bmatk\s*up\b/.test(normalized) ||
+    /\bpdef\s*up\b/.test(normalized) ||
+    /\bmdef\s*up\b/.test(normalized) ||
+    /\bexploit\s*weakness\b/.test(normalized) ||
+    /\bweapon\s*boost\b/.test(normalized) ||
+    /\bdamage\s*bonus\b/.test(normalized)
+  ) {
+    return 'effect-chip-buff';
+  }
+
+  return 'effect-chip-neutral';
+}
+
+function renderSlotDetailChips(parts, inactive = false) {
+  return parts.map(part => {
+    const normalized = normalizeEffectLabel(part);
+    const limitedUse = /\[Limited-use/i.test(part);
+    const passive = /\[Passive\]/i.test(part);
+    const kindClass = effectKindClassFromText(part);
+    const stateClass = inactive
+      ? 'opacity-65'
+      : limitedUse
+        ? 'opacity-80'
+        : passive
+          ? 'ring-1 ring-inset ring-slate-300 dark:ring-slate-600'
+          : '';
+    return `<span class="effect-chip ${kindClass} ${stateClass}" data-effect-value="${escapeHtml(normalized)}">${escapeHtml(part)}</span>`;
+  }).join('');
 }
 
 function effectChipsFromCsv(text) {
@@ -468,11 +809,11 @@ function effectChipsFromCsv(text) {
 }
 
 function pill(text, classes) {
-  return text ? `<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-black ${classes}">${escapeHtml(text)}</span>` : '';
+  return text ? `<span class="inline-flex rounded-md px-2.5 py-1 text-xs font-black ${classes}">${escapeHtml(text)}</span>` : '';
 }
 
 function bindEffectHover() {
-  document.querySelectorAll('[data-effect-hover]').forEach(chip => {
+  document.querySelectorAll('[data-effect-hover-source="coverage"]').forEach(chip => {
     chip.addEventListener('mouseenter', () => highlightEquipment(chip.dataset.effectHover));
     chip.addEventListener('mouseleave', clearHighlight);
   });
@@ -506,16 +847,23 @@ function normalizeEffectLabel(value) {
     .replace(/>=?t\d+/g, '')
     .replace(/\[.*?\]/g, '')
     .replace(/\b(t\d|low|mid|high|xhigh|extra high)\b/g, '')
+    .replace(/\bpotency\b/g, 'pot')
+    .replace(/\bresist(?:ance)?\b/g, 'resist')
+    .replace(/\bdamage\b/g, 'dmg')
+    .replace(/\bphysical\b/g, 'phys')
+    .replace(/\bmagic(?:al)?\b/g, 'mag')
+    .replace(/\bsingle\s+tgt\b/g, 'single target')
+    .replace(/\ball\s+tgt\b/g, 'all target')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 }
 
 function looksDebuff(text) {
-  return /down|rcvd|received|enfeeble|torpor|resist\. down/i.test(text);
+  return effectKindClassFromText(text) === 'effect-chip-debuff';
 }
 
 function looksBuff(text) {
-  return /up|boost|bonus|enliven|haste|amp|weakness|regen|barrier|veil/i.test(text);
+  return effectKindClassFromText(text) === 'effect-chip-buff';
 }
 
 function groupBy(items, fn) {
@@ -546,13 +894,17 @@ async function copyJson() {
 }
 
 function handleControlChange(event) {
+  const targetId = event?.target?.id || '';
   const previousSource = sourceKey();
   readControlsIntoState();
-  if (event?.target?.id === 'themeMode') applyTheme();
-  if (event?.target?.id === 'preset') {
-    const preset = PRESETS[state.preset];
-    if (preset) Object.assign(state, preset);
+  if (targetId === 'themeMode') applyTheme();
+  if (targetId === 'preset') {
+    const preset = getPresetDefinition(state.preset);
+    if (preset) applyPreset(preset);
     writeStateToControls();
+  } else if (['weakArch', 'weakElem', 'damageAssumption', 'healerNeeded'].includes(targetId)) {
+    state.preset = 'custom';
+    $('preset').value = 'custom';
   }
   ensureEffectSelectionDefaults();
   persistState();
@@ -562,7 +914,7 @@ function handleControlChange(event) {
 }
 
 function bindInputs() {
-  for (const id of ['sheetUrl', 'sheetName', 'preset', 'weakArch', 'weakElem', 'damageAssumption', 'healerNeeded', 'themeMode']) {
+  for (const id of ['sheetUrl', 'preset', 'weakArch', 'weakElem', 'damageAssumption', 'healerNeeded', 'themeMode']) {
     $(id).addEventListener('input', handleControlChange);
     $(id).addEventListener('change', handleControlChange);
   }
@@ -571,6 +923,8 @@ function bindInputs() {
     const button = event.target.closest('[data-effect-toggle]');
     if (!button) return;
     const id = button.dataset.effectToggle;
+    state.preset = 'custom';
+    $('preset').value = 'custom';
     state.selectedEffects[id] = !state.selectedEffects[id];
     persistState();
     renderEffectPanels(lastResult);
@@ -578,9 +932,119 @@ function bindInputs() {
   });
 }
 
+
+function renderPresetOptions() {
+  const select = $('preset');
+  if (!select) return;
+  const current = state.preset || 'custom';
+  const quickOptions = Object.entries(QUICK_PRESETS)
+    .map(([key, preset]) => `<option value="${escapeHtml(key)}">${escapeHtml(preset.label)}</option>`)
+    .join('');
+  const groups = [
+    `<option value="custom">Custom</option>`,
+    `<optgroup label="Quick presets">${quickOptions}</optgroup>`,
+  ];
+  if (extendedPresets.length) {
+    const extendedOptions = extendedPresets
+      .map(preset => `<option value="${escapeHtml(preset.key)}">${escapeHtml(preset.label)}</option>`)
+      .join('');
+    groups.push(`<optgroup label="Extended presets">${extendedOptions}</optgroup>`);
+  }
+  select.innerHTML = groups.join('');
+  const hasCurrent = Array.from(select.options).some(option => option.value === current);
+  select.value = hasCurrent ? current : 'custom';
+  if (!hasCurrent) state.preset = 'custom';
+}
+
+function getPresetDefinition(key) {
+  if (!key || key === 'custom') return null;
+  if (QUICK_PRESETS[key]) return QUICK_PRESETS[key];
+  return extendedPresets.find(preset => preset.key === key) || null;
+}
+
+function applyPreset(preset) {
+  state.weakArch = preset.weakArch ?? state.weakArch;
+  state.weakElem = preset.weakElem ?? state.weakElem;
+  state.damageAssumption = preset.damageAssumption || state.damageAssumption || 'conservative';
+  state.healerNeeded = Boolean(preset.healerNeeded);
+  const explicitTokens = [
+    ...parseCsvList(preset.wantBuffs),
+    ...parseCsvList(preset.wantDebuffs),
+    ...parseCsvList(preset.defensiveBuffs),
+    ...parseCsvList(preset.defensiveDebuffs),
+  ];
+  state.selectedEffects = {};
+  if (explicitTokens.length) {
+    const tokenSet = new Set(explicitTokens.map(normalizeToken));
+    for (const effect of currentEffectDefs()) {
+      state.selectedEffects[effect.id] = tokenSet.has(normalizeToken(effect.token));
+    }
+  } else {
+    ensureEffectSelectionDefaults();
+  }
+}
+
+function parsePresetRows(rows) {
+  const header = rows[0].map(normalizePresetHeader);
+  return rows.slice(1)
+    .map(row => {
+      const get = name => row[header.indexOf(name)] ?? '';
+      const id = String(get('id') || '').trim();
+      const name = String(get('name') || id).trim();
+      if (!id || !name) return null;
+      return {
+        key: `ext:${id}`,
+        id,
+        label: name,
+        group: String(get('group') || 'Extended presets').trim(),
+        weakArch: normalizePresetArch(get('weak_arch')),
+        weakElem: normalizePresetElem(get('weak_elem')),
+        damageAssumption: normalizeDamageAssumption(get('damage_assumption')),
+        healerNeeded: parsePresetBoolean(get('healer_needed')),
+        wantBuffs: get('want_buffs'),
+        wantDebuffs: get('want_debuffs'),
+        defensiveBuffs: get('defensive_buffs'),
+        defensiveDebuffs: get('defensive_debuffs'),
+        notes: get('notes'),
+      };
+    })
+    .filter(Boolean);
+}
+
+function normalizePresetArch(value) {
+  const text = String(value || '').trim().toLowerCase();
+  if (['phys', 'physical'].includes(text)) return 'phys';
+  if (['mag', 'magic', 'magical'].includes(text)) return 'mag';
+  if (text === 'hybrid') return 'hybrid';
+  return '';
+}
+
+function normalizePresetElem(value) {
+  const text = String(value || '').trim().toLowerCase().replace(/[^a-z]/g, '');
+  const aliases = { non: 'nonelem', nonelemental: 'nonelem', nonelem: 'nonelem' };
+  const elem = aliases[text] || text;
+  return ['fire', 'ice', 'lightning', 'wind', 'water', 'earth', 'nonelem'].includes(elem) ? elem : '';
+}
+
+function normalizeDamageAssumption(value) {
+  const text = String(value || '').trim();
+  return ['conservative', 'optimistic', 'baseOnly'].includes(text) ? text : 'conservative';
+}
+
+function parsePresetBoolean(value) {
+  return /^(true|yes|y|1)$/i.test(String(value || '').trim());
+}
+
+function normalizeToken(value) {
+  return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+
 systemThemeQuery?.addEventListener?.('change', () => { if (state.themeMode === 'system') applyTheme(); });
 loadSavedState();
 ensureEffectSelectionDefaults();
 renderEffectPanels();
 bindInputs();
 scheduleRecalculate({ reloadData: true });
+
+setSourceMeta(null);

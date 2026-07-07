@@ -7,43 +7,51 @@
     <link rel="stylesheet" href="./src/styles.css" />
   </head>
   <body>
-    <main class="mx-auto max-w-[1800px] px-4 py-4 sm:px-5 lg:px-6 lg:py-6">
-      <header class="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 dark:border-slate-700 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 class="text-3xl font-black tracking-tight text-slate-950 dark:text-slate-50 sm:text-4xl">FF7EC Team Builder</h1>
-          <p class="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Use the bundled all-owned dataset, or paste a public Google Sheet URL to override it.</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <label class="field-label min-w-36">
-            Theme
-            <select id="themeMode" class="field-input compact-input">
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </label>
-          <button id="copyJsonButton" class="soft-button self-end" disabled>Copy JSON</button>
-        </div>
-      </header>
-
+    <main class="mx-auto max-w-[1800px] px-3 py-3 sm:px-4 lg:px-5">
       <div class="app-shell">
-        <aside class="space-y-4 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-auto lg:pr-1">
+        <aside class="space-y-3 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-auto lg:pr-1">
           <section class="panel">
-            <div class="mb-3 flex items-start justify-between gap-3">
-              <div>
-                <h2 class="panel-title">Source</h2>
-                <p class="panel-subtitle">Leave blank to use the bundled all-owned dataset.</p>
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white dark:bg-slate-100 dark:text-slate-950">
+                    <span class="inline-flex h-4 w-4 items-center justify-center text-sm leading-none h-4 w-4" aria-hidden="true">⚔️</span>
+                  </span>
+                  <div class="min-w-0">
+                    <h1 class="truncate text-base font-black tracking-tight text-slate-950 dark:text-slate-50">FF7EC Team Builder</h1>
+                  </div>
+                </div>
               </div>
-              <p id="status" class="shrink-0 text-xs font-black text-slate-500 dark:text-slate-300">Ready.</p>
+              <div class="flex shrink-0 items-center gap-2">
+                <label class="relative inline-flex items-center" title="Theme">
+                  <span class="pointer-events-none absolute left-2 inline-flex h-4 w-4 items-center justify-center text-sm leading-none text-slate-500 dark:text-slate-300" aria-hidden="true">◐</span>
+                  <select id="themeMode" class="field-input compact-input w-24 pl-8 pr-7 text-xs" aria-label="Theme">
+                    <option value="system">Auto</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div class="mt-3 flex items-center gap-2 border-t border-slate-200 pt-3 text-xs font-bold text-slate-500 dark:border-slate-700 dark:text-slate-300">
+              <p id="status" class="min-w-0 flex-1 truncate">Builds update automatically.</p>
+              <button id="copyJsonButton" class="soft-button inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs" disabled title="Copy raw recommendation JSON" aria-label="Copy raw recommendation JSON">
+                <span class="inline-flex h-4 w-4 items-center justify-center text-sm leading-none" aria-hidden="true">⧉</span>
+                <span>JSON</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="mb-3">
+              <h2 class="panel-title">Source</h2>
+              <p class="panel-subtitle">Sheets use <strong>Equipments</strong> and optional <strong>Presets</strong>.</p>
+              <p id="sourceMeta" class="mt-1 truncate text-xs font-bold text-slate-500 dark:text-slate-300">Bundled data</p>
             </div>
             <div class="grid gap-3">
               <label class="field-label">
                 Public Google Sheet URL or ID
                 <input id="sheetUrl" class="field-input" placeholder="Optional Google Sheet override" />
-              </label>
-              <label class="field-label">
-                Sheet tab name
-                <input id="sheetName" class="field-input" value="Equipments" />
               </label>
             </div>
           </section>
@@ -58,18 +66,6 @@
                 Quick preset
                 <select id="preset" class="field-input">
                   <option value="custom">Custom</option>
-                  <option value="phys-fire">Physical / Fire</option>
-                  <option value="phys-ice">Physical / Ice</option>
-                  <option value="phys-lightning">Physical / Lightning</option>
-                  <option value="phys-wind">Physical / Wind</option>
-                  <option value="phys-water">Physical / Water</option>
-                  <option value="phys-earth">Physical / Earth</option>
-                  <option value="mag-fire">Magical / Fire</option>
-                  <option value="mag-ice">Magical / Ice</option>
-                  <option value="mag-lightning">Magical / Lightning</option>
-                  <option value="mag-wind">Magical / Wind</option>
-                  <option value="mag-water">Magical / Water</option>
-                  <option value="mag-earth">Magical / Earth</option>
                 </select>
               </label>
               <label class="field-label">
@@ -129,7 +125,7 @@
         </aside>
 
         <section class="min-w-0 space-y-4">
-          <section id="results" class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300">
+          <section id="results" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-slate-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300">
             Builds update automatically as inputs change.
           </section>
 

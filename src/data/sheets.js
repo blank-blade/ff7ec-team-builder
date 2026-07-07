@@ -28,6 +28,12 @@ export async function fetchSampleTsv() {
   return await response.text();
 }
 
+export async function fetchSamplePresetsTsv() {
+  const response = await fetch('./sample/presets.latest.tsv');
+  if (!response.ok) throw new Error(`Failed to load bundled presets TSV: HTTP ${response.status}`);
+  return await response.text();
+}
+
 export function parseDelimited(text) {
   const raw = String(text || '').replace(/^\uFEFF/, '');
   const firstLine = raw.split(/\r?\n/, 1)[0] || '';
@@ -96,4 +102,27 @@ export function validateEquipmentGrid(rows) {
   const widthIssues = rows.slice(1).reduce((count, row) => count + (row.length < required.length ? 1 : 0), 0);
   if (widthIssues) warnings.push(`${widthIssues} row(s) have fewer than ${required.length} columns.`);
   return { ok: warnings.length === 0, warnings };
+}
+
+
+export function validatePresetGrid(rows) {
+  const required = ['id','name'];
+  const optional = ['group','weak_arch','weak_elem','damage_assumption','healer_needed','want_buffs','want_debuffs','defensive_buffs','defensive_debuffs','notes'];
+  const warnings = [];
+  if (!Array.isArray(rows) || rows.length < 2) {
+    return { ok: false, warnings: ['No preset rows found.'] };
+  }
+  const header = rows[0].map(x => String(x || '').trim());
+  const normalized = header.map(normalizePresetHeader);
+  for (const col of required) {
+    if (!normalized.includes(col)) warnings.push(`Missing required preset column: ${col}`);
+  }
+  const known = new Set([...required, ...optional]);
+  const unknown = normalized.filter(Boolean).filter(col => !known.has(col));
+  if (unknown.length) warnings.push(`Ignoring unknown preset column(s): ${Array.from(new Set(unknown)).join(', ')}`);
+  return { ok: warnings.filter(w => !w.startsWith('Ignoring unknown')).length === 0, warnings };
+}
+
+export function normalizePresetHeader(value) {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }

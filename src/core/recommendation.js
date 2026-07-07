@@ -10,7 +10,7 @@
  *
  * @customfunction
  */
-export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffsStr, wantDebuffsStr, healerNeeded, damageAssumption, manualCoverageMode) {
+export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffsStr, wantDebuffsStr, healerNeeded, damageAssumption, manualCoverageMode, anchorHealThreshold) {
   if (!equipmentsData || equipmentsData.length < 2) return [["No equipment data found"]];
 
   const TIER_VALUE = { low: 1, mid: 2, moderate: 2, high: 3, xhigh: 4, extrahigh: 4, extraHigh: 4 };
@@ -51,6 +51,10 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
   const DEFAULT_TIERED_MIN_TIER = 3;
   const HIGH_TIER_THRESHOLD = 3;
   const NEAR_OPTIMAL_OBJECTIVE_RATIO = 0.96;
+  const DEFAULT_ANCHOR_HEAL_THRESHOLD = 47;
+  // Cura materia is 100%; All (Cure Spells) I applies -40%, so an All Cure
+  // support slot is treated as inferred 60% AOE healing for display/scoring.
+  const ALL_CURE_INFERRED_HEAL_POTENCY = 60;
   // Gear Command Abilities and Ultimate Weapon U.C. Abilities are limited-use actions.
   // They can still satisfy coverage, but active buff/debuff/amp utility should rank below sustained weapon coverage.
   const LIMITED_USE_ACTIVE_UTILITY_COVERAGE_FACTOR = 0.55;
@@ -190,7 +194,8 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     weakArch: weakArch ? cleanText(weakArch).toLowerCase() : null,
     weakElem: weakElem ? cleanText(weakElem).toLowerCase() : null,
     healerNeeded: parseBool(healerNeeded),
-    damageAssumption: normalizeDamageAssumption(damageAssumption)
+    damageAssumption: normalizeDamageAssumption(damageAssumption),
+    anchorHealThreshold: Math.max(1, Number(anchorHealThreshold) || DEFAULT_ANCHOR_HEAL_THRESHOLD)
   };
 
   function inferPyramidLayer(kind, type) {
@@ -515,6 +520,195 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     return getWeaponScore(r, chosenCustom, { requireExactElement: hasElementTarget() });
   }
 
+  function getAnchorSustainedDamage(r, chosenCustom, context) {
+    return getSuitingDamage(r, chosenCustom, {
+      requireExactElement: hasElementTarget(),
+      context: context || {},
+    });
+  }
+
+  function hasNaturalTargetMatch(r, chosenCustom) {
+    if (!r || !r.damage) return false;
+    let found = false;
+    customOptionsFor(r, chosenCustom).forEach(opt => {
+      r.damage.forEach(d => {
+        if (d.custom !== null && d.custom !== opt) return;
+        // "Natural fit" means the weapon's basic command shape matches the
+        // target archetype + element. Potency is not part of the condition.
+        if (getDamageFitTier(d, true) >= 4) found = true;
+      });
+    });
+    return found;
+  }
+
+  function capSatisfiesDesired(cap, desired, isMemberAnchor) {
+    if (!cap || !desired) return false;
+
+    if (cap.kind !== desired.kind) return false;
+    if (cap.type !== desired.type) return false;
+
+    const desiredElem = desired.elem || "none";
+    if (ELEMENTAL_TYPES.has(desired.type) && desiredElem !== "none") {
+      if ((cap.elem || "none") !== desiredElem) return false;
+    }
+
+    if ((desired.minTier || 0) > 0 && (cap.tier || 0) < desired.minTier) return false;
+
+    // Self-only offensive buffs only satisfy desired team coverage when the
+    // member is an anchor. Support self-buffs should not be counted as team utility.
+    if (cap.range === "self" && !isMemberAnchor && !SELF_OK_TYPES.has(cap.type)) return false;
+
+    return true;
+  }
+
+  function limitedUseLabel(r) {
+    if (!r || !r.item) return "Limited-use";
+    if (r.item.type === "ultimate") return "Limited-use U.C. Ability";
+    if (r.item.type === "gear") return "Limited-use Gear C. Ability";
+    return "Limited-use";
+  }
+
+  function isLimitedUseActiveUtility(r, cap) {
+    if (!r || !r.item || !cap) return false;
+    if (r.item.type !== "ultimate" && r.item.type !== "gear") return false;
+    if (cap.kind === "dmg" || cap.kind === "heal") return false;
+    if (cap.mode === "passive") return false;
+    return true;
+  }
+
+  function isDefensiveBuffDesired(desired) {
+    return !!(
+      desired &&
+      desired.kind === "buff" &&
+      DEFENSIVE_BUFF_TYPES.has(desired.type)
+    );
+  }
+
+  function getCoverageRangeScore(cap, desired, isMemberAnchor) {
+    const range = cap.range || "none";
+
+    // Defensive buffs are team-survival tools. Prefer AOE heavily; a self-only
+    // defensive buff can still be useful on an anchor, but should not compete
+    // closely with party-wide mitigation.
+    if (isDefensiveBuffDesired(desired)) {
+      return {
+        allAllies: 160000,
+        allyExcludingSelf: 70000,
+        singleAlly: 25000,
+        self: isMemberAnchor ? 8000 : -20000,
+        allEnemies: 0,
+        singleEnemy: 0,
+        none: 0,
+        unknown: 0,
+      }[range] || 0;
+    }
+
+    return {
+      allAllies: 4000,
+      allEnemies: 4000,
+      singleEnemy: 2500,
+      singleAlly: 1800,
+      self: isMemberAnchor ? 1200 : 0,
+      allyExcludingSelf: 1800,
+      none: 0,
+      unknown: 0,
+    }[range] || 0;
+  }
+
+  function coverageScoreForCap(r, cap, desired, isMemberAnchor) {
+    const layer = desired.layer || inferPyramidLayer(desired.kind, desired.type);
+    const layerWeight = {
+      1: 500000,
+      2: 350000,
+      3: 250000,
+      4: 160000,
+      5: 140000,
+      6: 120000,
+    }[layer] || 100000;
+
+    const tierScore = (cap.tier || 0) * 10000;
+
+    const rangeScore = getCoverageRangeScore(cap, desired, isMemberAnchor);
+
+    // Conditional defensive mitigation is a bigger concern than conditional
+    // offensive support, because missed uptime can mean a wipe.
+    const conditionScore = isDefensiveBuffDesired(desired) && cap.when ? -5000 : cap.when ? -500 : 0;
+    const limitedFactor = isLimitedUseActiveUtility(r, cap) ? LIMITED_USE_ACTIVE_UTILITY_COVERAGE_FACTOR : 1;
+
+    return Math.round((layerWeight + tierScore + rangeScore + conditionScore) * limitedFactor);
+  }
+
+  function getCoverageMapForItem(r, isMemberAnchor) {
+    const map = new Map();
+    if (!r || !r.capabilities) return map;
+
+    r.capabilities.forEach(cap => {
+      if (cap.custom !== null && cap.custom !== r.chosenCustom) return;
+      if (cap.kind === "dmg" || cap.kind === "heal") return;
+      if (cap.mode === "passive") return;
+
+      desiredList.forEach(desired => {
+        if (!capSatisfiesDesired(cap, desired, isMemberAnchor)) return;
+
+        const key = desired.key;
+        const score = coverageScoreForCap(r, cap, desired, isMemberAnchor);
+        const entry = {
+          desired,
+          cap,
+          tier: cap.tier || 0,
+          score,
+          itemId: r.item.id,
+          itemName: r.item.name,
+        };
+
+        const prev = map.get(key);
+        if (!prev || entry.score > prev.score) map.set(key, entry);
+      });
+    });
+
+    return map;
+  }
+
+  function getIncrementalCoverageScoreForItem(r, isMemberAnchor, chosenCustom, localCoverageMap) {
+    if (!r) return 0;
+
+    const pick = Object.assign({}, r, { chosenCustom });
+    const coverage = getCoverageMapForItem(pick, isMemberAnchor);
+    let score = 0;
+
+    coverage.forEach((entry, key) => {
+      const prev = localCoverageMap && localCoverageMap.get(key);
+      if (!prev) {
+        score += entry.score;
+      } else if (entry.score > prev.score) {
+        // Small reward for improving an already-covered token, but much less
+        // than adding a new selected effect.
+        score += Math.max(0, entry.score - prev.score) * 0.1;
+      }
+    });
+
+    return score;
+  }
+
+  function getNaturalTargetMatchScore(r, chosenCustom) {
+    return hasNaturalTargetMatch(r, chosenCustom) ? 1 : 0;
+  }
+
+  function getAnchorWeaponPriorityScore(r, chosenCustom, localCoverageMap, isAnchor, context) {
+    const dps = getAnchorSustainedDamage(r, chosenCustom, context);
+    if (dps <= 0) return -Infinity;
+
+    const coverage = getIncrementalCoverageScoreForItem(
+      r,
+      isAnchor,
+      chosenCustom,
+      localCoverageMap
+    );
+
+    // Anchor weapon selection is DPS-first. Coverage is only a secondary tie-breaker.
+    return dps * 1000000 + coverage;
+  }
+
   function getSuitingDamage(r, chosenCustom, options) {
     if (!r) return 0;
     const requireExactElement = !!(options && options.requireExactElement);
@@ -554,6 +748,17 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     return found;
   }
 
+  function getAllCureInferredHealPotency(r, chosenCustom) {
+    return hasAllCureSupport(r, chosenCustom) ? ALL_CURE_INFERRED_HEAL_POTENCY : 0;
+  }
+
+  function getDisplayedHealScore(r, chosenCustom) {
+    return Math.max(
+      getHealScore(r, chosenCustom),
+      getAllCureInferredHealPotency(r, chosenCustom)
+    );
+  }
+
   function getTeamHealScore(r, chosenCustom) {
     if (!r) return 0;
     let best = 0;
@@ -564,154 +769,114 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
         const range = h.range || "unknown";
         if (range === "allAllies" || allCure) best = Math.max(best, h.pot || 0);
       });
-      if (allCure) best = Math.max(best, 1);
+      if (allCure) best = Math.max(best, ALL_CURE_INFERRED_HEAL_POTENCY);
     });
     return best;
   }
 
-  function isOffensiveBuffType(type) {
-    return OFFENSIVE_BUFF_TYPES.has(type);
+  function isRegularWeapon(r) {
+    return !!(r && r.item && r.item.type !== "gear" && r.item.type !== "ultimate");
   }
 
-  function isDefensiveBuffType(type) {
-    return DEFENSIVE_BUFF_TYPES.has(type);
+  function getDirectWeaponHealPotency(r, chosenCustom) {
+    if (!isRegularWeapon(r)) return 0;
+    let best = 0;
+    customOptionsFor(r, chosenCustom).forEach(opt => {
+      r.healing.forEach(h => {
+        if (h.custom !== null && h.custom !== opt) return;
+        best = Math.max(best, h.pot || 0);
+      });
+    });
+    return best;
   }
 
-  function buffCanApplyToAnchor(cap, isMemberAnchor) {
-    const range = cap.range || "none";
-    if (range === "allAllies" || range === "none" || range === "unknown") return true;
-    if (range === "self") return !!isMemberAnchor;
-    if (range === "allyExcludingSelf") return !isMemberAnchor;
-    if (range === "singleAlly") return true;
-    return false;
+  function getDirectWeaponPartyHealPotency(r, chosenCustom) {
+    if (!isRegularWeapon(r)) return 0;
+    let best = 0;
+    customOptionsFor(r, chosenCustom).forEach(opt => {
+      r.healing.forEach(h => {
+        if (h.custom !== null && h.custom !== opt) return;
+        if ((h.range || "unknown") !== "allAllies") return;
+        best = Math.max(best, h.pot || 0);
+      });
+    });
+    return best;
   }
 
-  function defensiveBuffAppliesToTeamEnough(cap, isMemberAnchor) {
-    const range = cap.range || "none";
-    if (range === "allAllies" || range === "none" || range === "unknown") return true;
-    if (range === "singleAlly" || range === "allyExcludingSelf") return true;
-    if (range === "self") return !!isMemberAnchor;
-    return false;
+  function hasWeaponAllCureSupport(r, chosenCustom) {
+    if (!isRegularWeapon(r)) return false;
+    let found = false;
+    customOptionsFor(r, chosenCustom).forEach(opt => {
+      if (hasAllCureSupport(r, opt)) found = true;
+    });
+    return found;
   }
 
-  function capSatisfiesDesired(cap, desired, isMemberAnchor) {
-    if (cap.kind !== desired.kind) return false;
-    if (cap.type !== desired.type) return false;
-    if (desired.elem && desired.elem !== "none" && cap.elem !== desired.elem) return false;
-    if (desired.minTier && (cap.tier || 0) < desired.minTier) return false;
-
-    if (cap.kind === "buff") {
-      if (isOffensiveBuffType(cap.type) && !buffCanApplyToAnchor(cap, isMemberAnchor)) return false;
-      if (isDefensiveBuffType(cap.type) && !defensiveBuffAppliesToTeamEnough(cap, isMemberAnchor)) return false;
-    } else if (cap.range === "self" && !isMemberAnchor && !SELF_OK_TYPES.has(cap.type)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  function rangeCoverageAdjustment(cap, desired, isMemberAnchor) {
-    if (cap.kind !== "buff") return 0;
-    const range = cap.range || "none";
-
-    if (isDefensiveBuffType(cap.type)) {
-      if (range === "allAllies") return 140;
-      if (range === "none" || range === "unknown") return 40;
-      if (range === "singleAlly" || range === "allyExcludingSelf") return -20;
-      if (range === "self") return isMemberAnchor ? -80 : -140;
-      return -60;
-    }
-
-    if (isOffensiveBuffType(cap.type)) {
-      if (range === "allAllies") return 70;
-      if (range === "singleAlly") return 50;
-      if (range === "allyExcludingSelf") return isMemberAnchor ? -160 : 45;
-      if (range === "self") return isMemberAnchor ? 35 : -180;
-      return 0;
-    }
-
-    return 0;
-  }
-
-  function capCoverageScore(cap, desired, isMemberAnchor) {
-    if (!capSatisfiesDesired(cap, desired, isMemberAnchor)) return 0;
-    const layer = desired.layer || inferPyramidLayer(desired.kind, desired.type);
-    const layerWeight = 100 + layer * 25;
-    const rangeAdj = rangeCoverageAdjustment(cap, desired, isMemberAnchor);
-    if (TIERED_TYPES.has(desired.type)) {
-      const tier = Math.max(cap.tier || 0, desired.minTier || 0);
-      const highTierBonus = tier >= HIGH_TIER_THRESHOLD ? 100 : 0;
-      return Math.max(1, layerWeight + highTierBonus + tier * 20 + rangeAdj);
-    }
-    return Math.max(1, layerWeight + 80 + rangeAdj);
-  }
-
-  function isLimitedUseActiveUtility(r, cap) {
-    return !!(r && r.item && (r.item.type === "gear" || r.item.type === "ultimate") && cap && cap.mode !== "passive" &&
-      (cap.kind === "buff" || cap.kind === "debuff" || cap.kind === "amp"));
-  }
-
-  function limitedUseLabel(r) {
-    if (!r || !r.item) return "Limited-use Ability";
-    if (r.item.type === "gear") return "Limited-use Gear C. Ability";
-    if (r.item.type === "ultimate") return "Limited-use U.C. Ability";
-    return "Limited-use Ability";
-  }
-
-  function applySourceCoverageWeight(score, r, cap) {
-    if (score <= 0) return score;
-    if (isLimitedUseActiveUtility(r, cap)) {
-      return Math.max(1, Math.round(score * LIMITED_USE_ACTIVE_UTILITY_COVERAGE_FACTOR));
-    }
-    return score;
-  }
-
-  function getCoverageMapForItem(r, isMemberAnchor, chosenCustom) {
-    const map = new Map();
-    if (!r || !r.capabilities) return map;
+  function hasWeaponHealBoostSupport(r, chosenCustom) {
+    if (!isRegularWeapon(r) || !r.capabilities) return false;
+    let found = false;
     customOptionsFor(r, chosenCustom).forEach(opt => {
       r.capabilities.forEach(cap => {
         if (cap.custom !== null && cap.custom !== opt) return;
-        desiredList.forEach(d => {
-          const rawScore = capCoverageScore(cap, d, isMemberAnchor);
-          const score = applySourceCoverageWeight(rawScore, r, cap);
-          if (score <= 0) return;
-          const prev = map.get(d.key);
-          if (!prev || score > prev.score) map.set(d.key, { score, rawScore, sourceWeight: rawScore ? score / rawScore : 1, tier: cap.tier || 0, cap, desired: d });
-        });
+        if (cap.type === "healingBoost" || cap.type === "healBoost" || cap.type === "boostHeal") found = true;
       });
     });
-    return map;
+    return found;
   }
 
-  function getCoveredKeysForAnItem(r, isMemberAnchor, chosenCustom) {
-    return new Set(Array.from(getCoverageMapForItem(r, isMemberAnchor, chosenCustom).keys()));
-  }
+  function getAnchorHealerCategory(r, chosenCustom) {
+    if (!isRegularWeapon(r)) return 0;
 
-  function getCoveragePowerForItem(r, isMemberAnchor, chosenCustom) {
-    let power = 0;
-    getCoverageMapForItem(r, isMemberAnchor, chosenCustom).forEach(v => power += v.score);
-    return power;
-  }
+    let best = 0;
+    customOptionsFor(r, chosenCustom).forEach(opt => {
+      const partyHeal = getDirectWeaponPartyHealPotency(r, opt);
+      const nominalHeal = getDirectWeaponHealPotency(r, opt);
+      const allCure = hasWeaponAllCureSupport(r, opt);
+      const healBoost = hasWeaponHealBoostSupport(r, opt);
 
-  function getIncrementalCoverageScoreForItem(r, isMemberAnchor, chosenCustom, existingMap) {
-    let score = 0;
-    getCoverageMapForItem(r, isMemberAnchor, chosenCustom).forEach((v, k) => {
-      const prev = existingMap && existingMap.get(k);
-      if (!prev) score += v.score;
-      else if (v.score > prev.score) score += (v.score - prev.score);
+      // Absolute category ladder:
+      // 4. AOE healing weapon ability >= threshold
+      // 3. AOE materia support: All (Cure Spells)
+      // 2. single/nominal healing weapon ability >= threshold
+      // 1. single-heal materia support: HEAL Boost
+      if (partyHeal >= target.anchorHealThreshold) best = Math.max(best, 4);
+      if (allCure) best = Math.max(best, 3);
+      if (nominalHeal >= target.anchorHealThreshold) best = Math.max(best, 2);
+      if (healBoost) best = Math.max(best, 1);
     });
-    return score;
+
+    return best;
+  }
+
+  function getAnchorHealerScore(r, chosenCustom) {
+    if (!isRegularWeapon(r)) return 0;
+
+    let best = 0;
+    customOptionsFor(r, chosenCustom).forEach(opt => {
+      const category = getAnchorHealerCategory(r, opt);
+      if (category <= 0) return;
+
+      const partyHeal = getDirectWeaponPartyHealPotency(r, opt);
+      const nominalHeal = getDirectWeaponHealPotency(r, opt);
+      const partyExcess = Math.max(0, partyHeal - target.anchorHealThreshold);
+      const nominalExcess = Math.max(0, nominalHeal - target.anchorHealThreshold);
+
+      // Category dominates. Potency is only intra-category tie-breaking.
+      best = Math.max(best, category * 1000000 + partyExcess * 100 + nominalExcess);
+    });
+
+    return best;
   }
 
   const charMap = new Map();
   resolvedItems.forEach(r => {
     const c = r.item.character;
-    if (!charMap.has(c)) charMap.set(c, { character: c, weapons: [], ultimates: [], gear: [], topWeaponScore: 0, topAnchorDpsScore: 0, topHealScore: 0, topTeamHealScore: 0, topFallbackHealScore: 0 });
+    if (!charMap.has(c)) charMap.set(c, { character: c, weapons: [], ultimates: [], gear: [], topWeaponScore: 0, topAnchorDpsScore: 0, topHealScore: 0, topTeamHealScore: 0, topAnchorHealerScore: 0, topFallbackHealScore: 0 });
     const d = charMap.get(c);
     const score = getWeaponScore(r, "AUTO");
     const healScore = getHealScore(r, "AUTO");
     const teamHealScore = getTeamHealScore(r, "AUTO");
+    const anchorHealerScore = getAnchorHealerScore(r, "AUTO");
 
     if (r.item.type === "gear") {
       d.gear.push(r);
@@ -720,6 +885,7 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     } else {
       d.weapons.push(r);
       d.topWeaponScore = Math.max(d.topWeaponScore, score);
+      d.topAnchorHealerScore = Math.max(d.topAnchorHealerScore, anchorHealerScore);
       // Anchor DPS is intentionally still based on regular weapons, so a limited-use Gear/U.C. ability cannot
       // make an otherwise off-profile character become the primary DPS anchor by itself.
       d.topAnchorDpsScore = Math.max(d.topAnchorDpsScore, getAnchorDpsScore(r, "AUTO"));
@@ -745,10 +911,16 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     let bestScore = -Infinity;
     raw.customOptions.forEach(opt => {
       const incrementalCoverage = getIncrementalCoverageScoreForItem(raw, isAnchor, opt, localCoverageMap);
-      const dps = (roleKind === "dps" || roleKind === "dpsHealer") ? getAnchorDpsScore(raw, opt) : getWeaponScore(raw, opt);
-      const heal = getHealScore(raw, opt);
-      const roleScore = roleKind === "healer" ? heal : dps;
-      const score = incrementalCoverage * 1000000 + roleScore;
+
+      let score;
+      if (roleKind === "dps" || roleKind === "dpsHealer") {
+        score = getAnchorWeaponPriorityScore(raw, opt, localCoverageMap, isAnchor);
+      } else if (roleKind === "healer") {
+        score = getHealScore(raw, opt) * 1000000 + incrementalCoverage;
+      } else {
+        score = incrementalCoverage * 1000000 + getWeaponScore(raw, opt) + getHealScore(raw, opt);
+      }
+
       if (score > bestScore) { bestScore = score; bestCustom = opt; }
     });
     return bestCustom;
@@ -775,43 +947,93 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     }
 
     if ((roleKind === "dps" || roleKind === "dpsHealer") && wpns.length > 0) {
-      wpns.sort((a, b) => getAnchorDpsScore(b, "AUTO") - getAnchorDpsScore(a, "AUTO"));
-      const topRaw = wpns.shift();
-      commitPick(topRaw, chooseBestCustom(topRaw, true, localCoverageMap, "dps"));
+      let bestIdx = -1, bestCustom = null, bestScore = -Infinity;
+      for (let i = 0; i < wpns.length; i++) {
+        const raw = wpns[i];
+        raw.customOptions.forEach(opt => {
+          const score = getAnchorWeaponPriorityScore(raw, opt, localCoverageMap, true);
+          if (score > bestScore) { bestScore = score; bestIdx = i; bestCustom = opt; }
+        });
+      }
+
+      if (bestIdx > -1) commitPick(removeAt(wpns, bestIdx), bestCustom);
     }
 
     if ((roleKind === "healer" || roleKind === "dpsHealer") && wpns.length > 0) {
-      const alreadyTeamHeals = wpnPicks.some(w => getTeamHealScore(w, w.chosenCustom) > 0);
-      if (!alreadyTeamHeals) {
+      const alreadyAnchorHeals = wpnPicks.some(w => getAnchorHealerScore(w, w.chosenCustom) > 0);
+      if (!alreadyAnchorHeals) {
         let bestIdx = -1, bestScore = -Infinity, bestCustom = null;
+
         for (let i = 0; i < wpns.length; i++) {
           const raw = wpns[i];
-          if (getTeamHealScore(raw, "AUTO") <= 0) continue;
+          if (getAnchorHealerScore(raw, "AUTO") <= 0) continue;
+
           raw.customOptions.forEach(opt => {
-            const teamHeal = getTeamHealScore(raw, opt);
-            if (teamHeal <= 0) return;
-            const rawHeal = getHealScore(raw, opt);
+            const category = getAnchorHealerCategory(raw, opt);
+            if (category <= 0) return;
+
+            const anchorHealerScore = getAnchorHealerScore(raw, opt);
             const incrementalCoverage = getIncrementalCoverageScoreForItem(raw, true, opt, localCoverageMap);
-            const roleDps = roleKind === "dpsHealer" ? getAnchorDpsScore(raw, opt) : getWeaponScore(raw, opt);
-            const score = teamHeal * 10000000 + incrementalCoverage * 1000000 + roleDps + rawHeal;
-            if (score > bestScore) { bestScore = score; bestIdx = i; bestCustom = opt; }
+            const partyHeal = getDirectWeaponPartyHealPotency(raw, opt);
+            const nominalHeal = getDirectWeaponHealPotency(raw, opt);
+            const partyExcess = Math.max(0, partyHeal - target.anchorHealThreshold);
+            const nominalExcess = Math.max(0, nominalHeal - target.anchorHealThreshold);
+            const roleDps = roleKind === "dpsHealer" ? getAnchorSustainedDamage(raw, opt) : 0;
+
+            // Hard source category first; utility coverage refines within category.
+            // This guarantees All Cure support outranks single-ally heal weapon.
+            const score = roleKind === "dpsHealer"
+              ? category * 1000000000000000 + roleDps * 1000000 + incrementalCoverage * 1000 + partyExcess * 100 + nominalExcess
+              : category * 1000000000000 + incrementalCoverage * 1000000 + partyExcess * 1000 + nominalExcess + anchorHealerScore;
+
+            if (score > bestScore) {
+              bestScore = score;
+              bestIdx = i;
+              bestCustom = opt;
+            }
           });
         }
+
         if (bestIdx > -1) commitPick(removeAt(wpns, bestIdx), bestCustom);
       }
     }
 
     function pickOneMaximizeCoverage(pool) {
       let bestIdx = -1, bestCustomForChoice = null, bestScore = -Infinity;
+      const isDpsRole = roleKind === "dps" || roleKind === "dpsHealer";
+      const isHealerRole = roleKind === "healer" || roleKind === "dpsHealer";
+      const alreadyHasAnchorHeal = wpnPicks.some(w => getAnchorHealerScore(w, w.chosenCustom) > 0);
+
       for (let i = 0; i < pool.length; i++) {
         const itemRaw = pool[i];
         itemRaw.customOptions.forEach(opt => {
           const incrementalCoverage = getIncrementalCoverageScoreForItem(itemRaw, isAnchor, opt, localCoverageMap);
-          const roleDps = (roleKind === "dps" || roleKind === "dpsHealer") ? getAnchorDpsScore(itemRaw, opt) : getWeaponScore(itemRaw, opt);
-          const score = incrementalCoverage * 1000000 + roleDps + getHealScore(itemRaw, opt);
+
+          let score;
+          if (isDpsRole) {
+            // Second DPS weapon is utility-first; damage is tie-breaker.
+            score = incrementalCoverage * 1000000 + getAnchorSustainedDamage(itemRaw, opt) + getDisplayedHealScore(itemRaw, opt);
+          } else if (isHealerRole && alreadyHasAnchorHeal) {
+            // Once the healer role is satisfied, do not eagerly chase DPS.
+            // Prefer buff/debuff coverage, then extra party healing, then nominal healing.
+            // Matching target damage is only a small tie-breaker if it naturally fits.
+            score =
+              incrementalCoverage * 100000000 +
+              getDirectWeaponPartyHealPotency(itemRaw, opt) * 1000 +
+              getDirectWeaponHealPotency(itemRaw, opt) +
+              getNaturalTargetMatchScore(itemRaw, opt);
+          } else {
+            // Support is utility-first. Do not treat it as Flex DPS.
+            score =
+              incrementalCoverage * 1000000 +
+              getDisplayedHealScore(itemRaw, opt) * 1000 +
+              getNaturalTargetMatchScore(itemRaw, opt);
+          }
+
           if (score > bestScore) { bestScore = score; bestIdx = i; bestCustomForChoice = opt; }
         });
       }
+
       if (bestIdx !== -1) return commitPick(removeAt(pool, bestIdx), bestCustomForChoice);
       return null;
     }
@@ -829,7 +1051,9 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
         const raw = uwPool[i];
         raw.customOptions.forEach(opt => {
           const incrementalCoverage = getIncrementalCoverageScoreForItem(raw, isAnchor, opt, localCoverageMap);
-          const score = incrementalCoverage * 1000000 + getWeaponScore(raw, opt);
+          // Ultimate Weapon C. Ability damage is limited-use burst, not sustained DPS.
+          // Keep UW selection utility-first; do not use its c_pot as a DPS tie-breaker.
+          const score = incrementalCoverage * 1000000;
           if (score > bestScore) { bestScore = score; bestIdx = i; bestCustom = opt; }
         });
       }
@@ -850,7 +1074,9 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
         const raw = gearPool[i];
         raw.customOptions.forEach(opt => {
           const incrementalCoverage = getIncrementalCoverageScoreForItem(raw, isAnchor, opt, localCoverageMap);
-          const score = incrementalCoverage * 1000000 + getWeaponScore(raw, opt) + getHealScore(raw, opt) * 1000;
+          // Gear C. Ability damage is limited-use burst, not sustained DPS.
+          // Healing may still matter for healer/support utility, but c_pot damage should not rank gear.
+          const score = incrementalCoverage * 1000000 + getDisplayedHealScore(raw, opt) * 1000;
           if (score > bestScore) { bestScore = score; bestIdx = i; bestCustom = opt; }
         });
       }
@@ -865,15 +1091,18 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
 
     const requireExactElementForProfile = hasElementTarget();
     const allSlots = [...wpnPicks, uwPick, gearPick].filter(Boolean);
-    const dps = Math.max(...allSlots.map(it => getSuitingDamage(it, undefined, { requireExactElement: requireExactElementForProfile })), 0);
-    const heal = Math.max(...allSlots.map(w => getHealScore(w)), 0);
+    const sustainedDpsSlots = wpnPicks.filter(Boolean);
+    // Sustained DPS is the best matching regular weapon only. UW/Gear C. Ability potency is limited-use burst.
+    const dps = Math.max(...sustainedDpsSlots.map(it => getSuitingDamage(it, undefined, { requireExactElement: requireExactElementForProfile })), 0);
+    const heal = Math.max(...allSlots.map(w => getDisplayedHealScore(w)), 0);
     const teamHeal = Math.max(...allSlots.map(w => getTeamHealScore(w)), 0);
-    return { weapons: wpnPicks, ultimate: uwPick, gear: gearPick, dps, heal, teamHeal, anchorHealerQualified: teamHeal > 0, usedFallbackHealer: false, updatedCoveredBases: localCoverageMap };
+    const anchorHealerScore = Math.max(...wpnPicks.map(w => getAnchorHealerScore(w, w.chosenCustom)), 0);
+    return { weapons: wpnPicks, ultimate: uwPick, gear: gearPick, dps, heal, teamHeal, anchorHealerScore, anchorHealerQualified: anchorHealerScore > 0, usedFallbackHealer: false, updatedCoveredBases: localCoverageMap };
   }
 
   let bestTeams = [];
   const anchors = chars.filter(c => (c.topAnchorDpsScore || 0) > 0).sort((a, b) => b.topAnchorDpsScore - a.topAnchorDpsScore);
-  const strictHealers = chars.filter(c => (c.topTeamHealScore || 0) > 0).sort((a, b) => b.topTeamHealScore - a.topTeamHealScore || b.topHealScore - a.topHealScore);
+  const strictHealers = chars.filter(c => (c.topAnchorHealerScore || 0) > 0).sort((a, b) => b.topAnchorHealerScore - a.topAnchorHealerScore || b.topTeamHealScore - a.topTeamHealScore || b.topHealScore - a.topHealScore);
   const rawHealers = chars.filter(c => (c.topFallbackHealScore || 0) > 0).sort((a, b) => b.topHealScore - a.topHealScore);
   const runtimeWarnings = [];
 
@@ -911,8 +1140,15 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
 
   function recomputeLoadoutDps(loadout, teamSignals) {
     const requireExactElementForProfile = hasElementTarget();
-    const allSlots = [loadout.weapons[0], loadout.weapons[1], loadout.ultimate, loadout.gear].filter(Boolean);
-    return Math.max(...allSlots.map(it => getSuitingDamage(it, undefined, { requireExactElement: requireExactElementForProfile, context: teamSignals })), 0);
+    const sustainedDpsSlots = [loadout.weapons[0], loadout.weapons[1]].filter(Boolean);
+    // Only one regular weapon can be the sustained anchor DPS source.
+    // Gear/UW C. Ability potency is intentionally excluded because it is limited-use burst.
+    return Math.max(...sustainedDpsSlots.map(it => getSuitingDamage(it, undefined, { requireExactElement: requireExactElementForProfile, context: teamSignals })), 0);
+  }
+
+  function getAnchorLoadoutDps(loadouts) {
+    const anchor = loadouts.find(m => m.roleKind === "dps" || m.roleKind === "dpsHealer");
+    return anchor ? anchor.lo.dps || 0 : 0;
   }
 
   function evaluateTeam(assignments) {
@@ -936,21 +1172,58 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
       const entry = teamCoverageMap.get(k);
       return entry && TIERED_TYPES.has(entry.desired.type) && (entry.tier || 0) >= HIGH_TIER_THRESHOLD;
     }).length;
-    const layerMask = satisfiedKeys.reduce((mask, k) => {
+
+    const layerOfKey = k => {
       const d = desiredMap.get(k);
-      const layer = d ? d.layer || 0 : 0;
+      return d ? d.layer || 0 : 0;
+    };
+
+    const foundationalCoverageCount = satisfiedKeys.filter(k => {
+      const layer = layerOfKey(k);
+      return layer === 1 || layer === 2;
+    }).length;
+
+    const importantCoverageCount = satisfiedKeys.filter(k => {
+      const layer = layerOfKey(k);
+      return layer >= 1 && layer <= 3;
+    }).length;
+
+    const pyramidCoverageScore = satisfiedKeys.reduce((sum, k) => {
+      const entry = teamCoverageMap.get(k);
+      const layer = layerOfKey(k);
+      const layerWeight = {
+        1: 5000, // base potency / attack / defense-shred foundations
+        2: 3500, // amp / availability layer
+        3: 2500, // weakness exploit / damage received layer
+        4: 1600, // damage bonus layer
+        5: 1400, // weapon boost layer
+        6: 1200,
+      }[layer] || 0;
+      return sum + layerWeight + (entry?.score || 0);
+    }, 0);
+
+    const layerMask = satisfiedKeys.reduce((mask, k) => {
+      const layer = layerOfKey(k);
       return layer > 0 ? mask | (1 << layer) : mask;
     }, 0);
 
+    const totalDps = loadouts.reduce((s, m) => s + m.lo.dps, 0);
+    const teamAnchorHealerScore = Math.max(...loadouts.map(m => m.lo.anchorHealerScore || 0), 0);
     bestTeams.push({
       loadouts,
+      anchorDps: getAnchorLoadoutDps(loadouts),
+      anchorHealerScore: teamAnchorHealerScore,
       coverageCount: satisfiedKeys.length,
       coveragePower,
+      foundationalCoverageCount,
+      importantCoverageCount,
+      pyramidCoverageScore,
       highTierCoverageCount,
       layerMask,
-      totalDps: loadouts.reduce((s, m) => s + m.lo.dps, 0),
+      totalDps,
       totalHeal: loadouts.reduce((s, m) => s + m.lo.heal, 0),
       healerCount,
+      coveredKeys: satisfiedKeys.slice().sort(),
       coveredTokensDisplay: displayTokens.join(", ")
     });
   }
@@ -967,7 +1240,7 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
           evaluateTeam([
             { cd: anchor, role: "Anchor DPS", roleKind: "dps" },
             { cd: healer, role: healerRoleLabel, roleKind: healerRoleKind },
-            { cd: flex, role: "Support / Flex DPS", roleKind: "support" }
+            { cd: flex, role: "Support", roleKind: "support" }
           ]);
         });
       });
@@ -976,7 +1249,7 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
 
   function enumerateCombinedDpsHealerTeams() {
     anchors.forEach(anchor => {
-      if ((anchor.topTeamHealScore || 0) <= 0) return;
+      if ((anchor.topAnchorHealerScore || 0) <= 0) return;
       const chosen = new Set([anchor.character]);
       chars.forEach(char2 => {
         if (chosen.has(char2.character) || isBlocked(chosen, char2.character)) return;
@@ -998,7 +1271,7 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     if (bestTeams.length === 0) enumerateCombinedDpsHealerTeams();
     if (bestTeams.length === 0) {
       if (strictHealers.length === 0 && rawHealers.length > 0) {
-        runtimeWarnings.push("Healer required, but no held character has a qualifying team-healing source. Self/single-target heals are not valid Anchor Healers. Add or verify heal range=allAllies on party-heal C-abilities, or set type=allCure for weapons with All (Cure) materia support.");
+        runtimeWarnings.push("Healer required, but no held character has a qualifying regular-weapon Anchor Healer source. Anchor Healer preference order: AOE weapon heal >= threshold, All Cure materia support, single/nominal weapon heal >= threshold, then HEAL Boost materia support. Utility coverage only refines choices within the same category. UW/Gear healing can still contribute support healing, but cannot qualify the Anchor Healer role.");
       } else if (strictHealers.length > 0) {
         runtimeWarnings.push("Healer required and strict healer candidates exist, but no valid team survived DPS/profile/exclusivity constraints. The script also tried allowing one character to act as both Anchor DPS and Anchor Healer.");
       }
@@ -1021,11 +1294,36 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     });
   }
 
+  function anchorDpsBucket(team) {
+    // Avoid letting tiny potency differences dominate, but keep major gaps such
+    // as 1340 vs 940 decisive once foundations are equal.
+    return Math.floor((team.anchorDps || 0) / 100);
+  }
+
   bestTeams.sort((a, b) =>
+    // First preserve pyramid foundations. Missing Layer 1/2 support should lose.
+    b.foundationalCoverageCount - a.foundationalCoverageCount ||
+
+    // Once foundations are equal, sustained Anchor DPS is the headline axis.
+    // This fixes cases where 940% builds outrank 1340% builds solely from
+    // slightly better secondary coverage or healer category.
+    anchorDpsBucket(b) - anchorDpsBucket(a) ||
+    b.anchorDps - a.anchorDps ||
+
+    // Then weighted utility quality, with AOE defensive buffs prioritized. This keeps the pyramid meaningful without
+    // letting one extra low-value token beat a much stronger anchor.
+    b.importantCoverageCount - a.importantCoverageCount ||
+    b.pyramidCoverageScore - a.pyramidCoverageScore ||
     b.coveragePower - a.coveragePower ||
     b.coverageCount - a.coverageCount ||
     b.highTierCoverageCount - a.highTierCoverageCount ||
+
+    // Team DPS is useful if support/healer naturally fits the target.
     b.totalDps - a.totalDps ||
+
+    // Healer quality should break ties after role qualification, not dominate
+    // the whole-team ranking.
+    (target.healerNeeded ? (b.anchorHealerScore - a.anchorHealerScore) : 0) ||
     b.totalHeal - a.totalHeal ||
     a.healerCount - b.healerCount
   );
@@ -1037,24 +1335,58 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     return charsSig + "||" + equipsSig;
   }
 
+  function isCoverageSubset(candidate, selected) {
+    const cand = new Set(candidate.coveredKeys || []);
+    const sel = new Set(selected.coveredKeys || []);
+    for (const k of cand) if (!sel.has(k)) return false;
+    return true;
+  }
+
+  function hasTrueCoverageDiversity(candidate, selectedTeams) {
+    const cand = new Set(candidate.coveredKeys || []);
+    for (const selected of selectedTeams) {
+      const sel = new Set(selected.coveredKeys || []);
+      let hasNew = false;
+      for (const k of cand) {
+        if (!sel.has(k)) { hasNew = true; break; }
+      }
+      if (hasNew) return true;
+    }
+    return false;
+  }
+
   function selectNearOptimalTeams(sortedTeams) {
     if (sortedTeams.length <= 1) return sortedTeams;
+
     const best = sortedTeams[0];
-    const minPower = best.coveragePower * NEAR_OPTIMAL_OBJECTIVE_RATIO;
-    const minCoverage = best.coverageCount;
-    const selected = [];
-    const seen = new Set();
-    for (let i = 0; i < sortedTeams.length; i++) {
+    const selected = [best];
+    const seen = new Set([teamSignature(best)]);
+
+    for (let i = 1; i < sortedTeams.length; i++) {
       const team = sortedTeams[i];
-      if (team.coverageCount < minCoverage) continue;
-      if (team.coveragePower < minPower) continue;
       const sig = teamSignature(team);
       if (seen.has(sig)) continue;
+
+      // Do not show builds that are simply lower-ranked because they cover less
+      // and do not add any new coverage dimension.
+      const dominated = selected.some(existing =>
+        isCoverageSubset(team, existing) &&
+        (team.anchorDps || 0) <= (existing.anchorDps || 0) &&
+        (team.foundationalCoverageCount || 0) <= (existing.foundationalCoverageCount || 0)
+      );
+      if (dominated) continue;
+
+      // Keep genuinely different coverage packages, especially if they preserve
+      // foundations. Avoid flooding the UI with small permutations.
+      if (!hasTrueCoverageDiversity(team, selected)) continue;
+      if ((team.foundationalCoverageCount || 0) < (best.foundationalCoverageCount || 0)) continue;
+
       selected.push(team);
       seen.add(sig);
       if (selected.length >= MAX_DISPLAY_BUILDS) break;
     }
-    return selected.length ? selected : [best];
+
+    return selected;
   }
 
   bestTeams = selectNearOptimalTeams(bestTeams);
@@ -1069,7 +1401,7 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
   }
 
   outputGrid.push(pad(["[ TEAM BUILDER PROFILE ]", "", "", "", "", "", "", "", "", ""]));
-  outputGrid.push(pad(["Target", `Archetype: ${target.weakArch ? archLabel(target.weakArch) : 'ANY'} | Element: ${target.weakElem ? elemLabel(target.weakElem) : 'NONE'} | Healer Required: ${target.healerNeeded ? 'TRUE' : 'FALSE'} | Damage: ${target.damageAssumption}`, "", "", "", "", "", "", "", ""]));
+  outputGrid.push(pad(["Target", `Archetype: ${target.weakArch ? archLabel(target.weakArch) : 'ANY'} | Element: ${target.weakElem ? elemLabel(target.weakElem) : 'NONE'} | Healer Required: ${target.healerNeeded ? 'TRUE' : 'FALSE'} | Damage: ${target.damageAssumption} | Anchor Heal ≥${target.anchorHealThreshold}%`, "", "", "", "", "", "", "", ""]));
   outputGrid.push(pad(["Implicit Buff Targets", synergyDisplayList.length > 0 ? synergyDisplayList.join("  »  ") : "None", "", "", "", "", "", "", "", ""]));
   outputGrid.push(pad(["Manual Debuff Note", "Enemy-side debuffs are only taken from Wanted Debuffs because immunity/weakness rules vary by boss.", "", "", "", "", "", "", "", ""]));
   outputGrid.push(pad(["Build Selection", `Near-optimal only; max ${MAX_DISPLAY_BUILDS} builds shown. Gear/U.C. abilities are included when the rows are held=TRUE.`, "", "", "", "", "", "", "", ""]));
@@ -1100,35 +1432,48 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     return when ? whenDisplay(when) : "Unconditional";
   }
 
-  function getDpsDetail(r, context) {
+  function getPotencyDetail(r, context, includeDamage = true) {
     if (!r) return "";
-    const dmgHits = getDisplayDamageHits(r);
-    const heal = getHealScore(r);
     const parts = [];
-    dmgHits.forEach(d => {
-      const fitTier = getDamageFitTier(d, hasElementTarget());
-      const contributesToTarget = fitTier > 0;
-      const ctx = Object.assign({}, context || {}, { hitsWeakness: fitTier >= 3 });
-      const effective = getEffectivePot(d, ctx);
-      let display = effective !== d.pot ? `${d.pot}%→${effective}% ${archLabel(d.arch)}/${elemLabel(d.elem)}` : `${d.pot}% ${archLabel(d.arch)}/${elemLabel(d.elem)}`;
-      if (d.mods && d.mods.length) {
-        d.mods.forEach(mod => {
-          if (mod.mult && effective === d.pot) display += ` [x${mod.mult} if ${modDisplayWhen(mod.when)}]`;
-          if (mod.add) display += ` [+${mod.add} dmg${mod.when ? " if " + modDisplayWhen(mod.when) : ""}]`;
-        });
-      }
-      if (!contributesToTarget) display += " [Off-profile]";
-      parts.push(display);
-    });
+
+    if (includeDamage) {
+      const dmgHits = getDisplayDamageHits(r);
+      dmgHits.forEach(d => {
+        const fitTier = getDamageFitTier(d, hasElementTarget());
+        const contributesToTarget = fitTier > 0;
+        const ctx = Object.assign({}, context || {}, { hitsWeakness: fitTier >= 3 });
+        const effective = getEffectivePot(d, ctx);
+        let display = effective !== d.pot ? `${d.pot}%→${effective}% ${archLabel(d.arch)}/${elemLabel(d.elem)}` : `${d.pot}% ${archLabel(d.arch)}/${elemLabel(d.elem)}`;
+        if (d.mods && d.mods.length) {
+          d.mods.forEach(mod => {
+            if (mod.mult && effective === d.pot) display += ` [x${mod.mult} if ${modDisplayWhen(mod.when)}]`;
+            if (mod.add) display += ` [+${mod.add} dmg${mod.when ? " if " + modDisplayWhen(mod.when) : ""}]`;
+          });
+        }
+        if (!contributesToTarget) display += " [Off-profile]";
+        parts.push(display);
+      });
+    }
+
+    const heal = getDisplayedHealScore(r);
     if (heal > 0) parts.push(`Heal ${heal}%`);
     return parts.join(" | ");
   }
 
   function isTokenImpacting(cap, isMemberAnchor) {
     if (cap.kind === "dmg") return false;
-    if (ELEMENTAL_TYPES.has(cap.type) && target.weakElem && cap.elem !== target.weakElem) return false;
-    if (cap.range === "self" && !isMemberAnchor && !SELF_OK_TYPES.has(cap.type)) return false;
-    return true;
+    if (cap.kind === "heal") return true;
+
+    // Healer-enabling materia support is role-impacting when a healer is needed.
+    // It is not part of offensive/defensive desired coverage, so it must not be
+    // judged solely by desiredList.
+    if (target.healerNeeded && cap.kind === "set" && cap.type === "allCure") return true;
+    if (target.healerNeeded && (cap.type === "healingBoost" || cap.type === "healBoost" || cap.type === "boostHeal")) return true;
+
+    // Impact is relative to the user's selected desired effects. This is
+    // especially important for defensive elemental picks such as Lightning
+    // Resist. Up on a water-weak boss: it should not be compared to weakElem.
+    return desiredList.some(d => capSatisfiesDesired(cap, d, isMemberAnchor));
   }
 
   function capDisplay(cap) {
@@ -1163,14 +1508,76 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
     return name;
   }
 
-  function slotSummary(r, teamSignals, isAnchor, includePassive) {
+  function shouldShowWeaponDamage(member, r) {
+    if (!member || !r) return false;
+    if (member.roleKind === "dps" || member.roleKind === "dpsHealer") return true;
+    return hasNaturalTargetMatch(r, r.chosenCustom);
+  }
+
+  function slotSummary(r, teamSignals, isAnchor, includePassive, includeDamage = true) {
     if (!r) return "";
-    const dps = getDpsDetail(r, teamSignals);
-    const util = joinLimited(getUtilList(r, isAnchor, includePassive), includePassive ? 4 : 3);
+    const potency = getPotencyDetail(r, teamSignals, includeDamage);
+    const util = getUtilList(r, isAnchor, includePassive).join(" | ");
     const bits = [getItemDisplayName(r)];
-    if (dps) bits.push(dps);
+    if (potency) bits.push(potency);
     if (util && util !== "None") bits.push(util);
     return bits.join(" — ");
+  }
+
+  function getAnchorHealerLoadoutHeal(loadouts) {
+    const anchorHealer = loadouts.find(m =>
+      m.roleKind === "healer" ||
+      m.role === "Anchor Healer" ||
+      /anchor\s+healer/i.test(m.role || "")
+    );
+
+    if (anchorHealer && anchorHealer.lo) return anchorHealer.lo.heal || 0;
+
+    // Fallback for unusual role layouts: use the strongest actual healer-like
+    // loadout, not summed incidental team healing.
+    return Math.max(...loadouts.map(m => m.lo?.heal || 0), 0);
+  }
+
+  function getTeamHeadlineHeal(team) {
+    const loadouts = team.loadouts || [];
+
+    const anchorHealer = loadouts.find(m =>
+      m.roleKind === "healer" ||
+      m.role === "Anchor Healer" ||
+      /anchor\s+healer/i.test(m.role || "")
+    );
+
+    if (anchorHealer && anchorHealer.lo) return anchorHealer.lo.heal || 0;
+
+    // Fallback: prefer a loadout that actually qualified as anchor healer.
+    const qualified = loadouts
+      .filter(m => (m.lo?.anchorHealerQualified || (m.lo?.anchorHealerScore || 0) > 0))
+      .sort((a, b) =>
+        (b.lo?.anchorHealerScore || 0) - (a.lo?.anchorHealerScore || 0) ||
+        (b.lo?.heal || 0) - (a.lo?.heal || 0)
+      );
+
+    if (qualified.length) return qualified[0].lo?.heal || 0;
+    return 0;
+  }
+
+  function teamSummaryPotency(team) {
+    const parts = [];
+
+    if ((team.anchorDps || 0) > 0) {
+      parts.push(`Anchor ${team.anchorDps}%`);
+    }
+
+    if ((team.totalDps || 0) > 0 && team.totalDps !== team.anchorDps) {
+      parts.push(`Team DPS ${team.totalDps}%`);
+    }
+
+    const headlineHeal = getTeamHeadlineHeal(team);
+    if (headlineHeal > 0) {
+      parts.push(`Heal ${headlineHeal}%`);
+    }
+
+    return parts.join(" / ");
   }
 
   const displayLimit = Math.min(bestTeams.length, MAX_DISPLAY_BUILDS);
@@ -1192,8 +1599,8 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
       "Team Summary",
       team.loadouts.map(m => `${m.cd.character} (${m.role})`).join(" / "),
       "", "", "", "",
-      `Team DPS ${team.totalDps}% / Heal ${team.totalHeal}%`,
-      `Coverage ${team.coverageCount}/${desiredList.length} | T3+ ${team.highTierCoverageCount}`,
+      teamSummaryPotency(team),
+      `Coverage ${team.coverageCount}/${desiredList.length} | Foundations ${team.foundationalCoverageCount}/${desiredList.filter(d => d.layer === 1 || d.layer === 2).length} | T3+ ${team.highTierCoverageCount}`,
       coverageText
     ]));
 
@@ -1206,16 +1613,18 @@ export function recommendTeamsGrid(equipmentsData, weakArch, weakElem, wantBuffs
         activeEffects.push(...getUtilList(it, isAnchor, false));
         passiveEffects.push(...getUtilList(it, isAnchor, true).filter(x => x.includes("[Passive]")));
       });
-      const rowEffects = joinLimited(Array.from(new Set(activeEffects)), 8) || "None";
-      const notes = joinLimited(Array.from(new Set(passiveEffects)), 4);
+      // Effects are shown inline on each equipment slot in the UI. Keep the
+      // legacy grid columns empty to avoid duplicate display in build cards.
+      const rowEffects = "";
+      const notes = "";
       outputGrid.push(pad([
         "",
         member.role,
         member.cd.character,
-        slotSummary(member.lo.weapons[0], teamSignals, isAnchor, false),
-        slotSummary(member.lo.weapons[1], teamSignals, isAnchor, false),
-        slotSummary(member.lo.ultimate, teamSignals, isAnchor, false),
-        slotSummary(member.lo.gear, teamSignals, isAnchor, true),
+        slotSummary(member.lo.weapons[0], teamSignals, isAnchor, true, shouldShowWeaponDamage(member, member.lo.weapons[0])),
+        slotSummary(member.lo.weapons[1], teamSignals, isAnchor, true, shouldShowWeaponDamage(member, member.lo.weapons[1])),
+        slotSummary(member.lo.ultimate, teamSignals, isAnchor, true, false),
+        slotSummary(member.lo.gear, teamSignals, isAnchor, true, false),
         `DPS ${member.lo.dps}% / Heal ${member.lo.heal}%`,
         rowEffects,
         notes
@@ -1285,7 +1694,8 @@ export function recommendTeamsJson(equipmentsData, options = {}) {
     options.wantDebuffs || "",
     options.healerNeeded || false,
     options.damageAssumption || "conservative",
-    options.manualCoverageMode !== false
+    options.manualCoverageMode !== false,
+    options.anchorHealThreshold || 47
   );
   return gridToBuildJson(grid);
 }

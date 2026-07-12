@@ -1,7 +1,7 @@
-import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: process.env.VITE_BASE_PATH || '/',
-  plugins: [tailwindcss()],
+	base: process.env.VITE_BASE_PATH || "/",
+	plugins: [tailwindcss()],
 });

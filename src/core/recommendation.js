@@ -52,7 +52,7 @@ export function recommendTeamsGrid(
 		"elemResistDown",
 		"elemDmgDown",
 	]);
-	const ELEMENTS = new Set([
+	const _ELEMENTS = new Set([
 		"fire",
 		"ice",
 		"lightning",
@@ -90,7 +90,7 @@ export function recommendTeamsGrid(
 		// should always satisfy the desired coverage regardless of anchor status.
 		"provoke",
 	]);
-	const OFFENSIVE_BUFF_TYPES = new Set([
+	const _OFFENSIVE_BUFF_TYPES = new Set([
 		"patkUp",
 		"matkUp",
 		"atkUp",
@@ -181,7 +181,7 @@ export function recommendTeamsGrid(
 	const MAX_DISPLAY_BUILDS = 10;
 	const DEFAULT_TIERED_MIN_TIER = 3;
 	const HIGH_TIER_THRESHOLD = 3;
-	const NEAR_OPTIMAL_OBJECTIVE_RATIO = 0.96;
+	const _NEAR_OPTIMAL_OBJECTIVE_RATIO = 0.96;
 	const DEFAULT_ANCHOR_HEAL_THRESHOLD = 47;
 	// Cura materia is 100%; All (Cure Spells) I applies -40%, so an All Cure
 	// support slot is treated as inferred 60% AOE healing for display/scoring.
@@ -199,7 +199,7 @@ export function recommendTeamsGrid(
 		if (v === null || v === undefined || v === "") return fallback || 0;
 		const s = v.toString().trim();
 		const numeric = Number(s);
-		if (!isNaN(numeric) && numeric > 0) return numeric;
+		if (!Number.isNaN(numeric) && numeric > 0) return numeric;
 		return TIER_VALUE[s] || TIER_VALUE[s.toLowerCase()] || fallback || 0;
 	}
 
@@ -243,7 +243,7 @@ export function recommendTeamsGrid(
 
 	function tierDisplay(tier) {
 		const t = normalizeTier(tier, 0);
-		return t ? `${TIER_LABEL[t] || "T" + t}` : "";
+		return t ? `${TIER_LABEL[t] || `T${t}`}` : "";
 	}
 
 	function effectDisplayName(kind, type, elem, status, target) {
@@ -362,8 +362,8 @@ export function recommendTeamsGrid(
 			.split("&")
 			.map((w) => {
 				if (w.startsWith("custom:"))
-					return w.slice(7).charAt(0).toUpperCase() + w.slice(8) + " Custom";
-				if (w.startsWith("status:")) return "Status: " + w.slice(7);
+					return `${w.slice(7).charAt(0).toUpperCase() + w.slice(8)} Custom`;
+				if (w.startsWith("status:")) return `Status: ${w.slice(7)}`;
 				return CONDITION_LABEL[w] || w;
 			})
 			.join(" + ");
@@ -689,10 +689,10 @@ export function recommendTeamsGrid(
 				});
 				const mult = attrs.mult !== undefined ? Number(attrs.mult) : null;
 				const add = attrs.add !== undefined ? Number(attrs.add) : null;
-				if ((mult && !isNaN(mult)) || (add && !isNaN(add))) {
+				if (mult || add) {
 					mods.push({
-						mult: mult && !isNaN(mult) ? mult : null,
-						add: add && !isNaN(add) ? add : null,
+						mult: mult || null,
+						add: add || null,
 						when: attrs.when || "",
 					});
 				}
@@ -946,8 +946,8 @@ export function recommendTeamsGrid(
 	}
 
 	function getEffectivePot(d, context) {
-		let pot = Number((d && d.pot) || 0);
-		if (!d || !d.mods || !d.mods.length) return pot;
+		let pot = Number(d?.pot || 0);
+		if (!d?.mods?.length) return pot;
 		d.mods.forEach((mod) => {
 			if (!conditionSupportedForDamageMod(mod.when, context)) return;
 			if (mod.mult) pot *= mod.mult;
@@ -958,8 +958,8 @@ export function recommendTeamsGrid(
 
 	function getWeaponScore(r, chosenCustom, options) {
 		if (!r) return 0;
-		const requireExactElement = !!(options && options.requireExactElement);
-		const contextBase = options && options.context ? options.context : {};
+		const requireExactElement = !!options?.requireExactElement;
+		const contextBase = options?.context ? options.context : {};
 		let maxScore = 0;
 		customOptionsFor(r, chosenCustom).forEach((opt) => {
 			r.damage.forEach((d) => {
@@ -991,7 +991,7 @@ export function recommendTeamsGrid(
 	}
 
 	function hasNaturalTargetMatch(r, chosenCustom) {
-		if (!r || !r.damage) return false;
+		if (!r?.damage) return false;
 		let found = false;
 		customOptionsFor(r, chosenCustom).forEach((opt) => {
 			r.damage.forEach((d) => {
@@ -1028,8 +1028,7 @@ export function recommendTeamsGrid(
 		// at all, since it does not help the DPS deal damage.
 		const isOffensiveBuff =
 			desired.kind === "buff" && !DEFENSIVE_BUFF_TYPES.has(desired.type);
-		if (isOffensiveBuff && cap.range === "self" && !isDpsAnchor)
-			return false;
+		if (isOffensiveBuff && cap.range === "self" && !isDpsAnchor) return false;
 
 		// Other self-only buffs only satisfy coverage when the member is an anchor.
 		if (cap.range === "self" && !isMemberAnchor) return false;
@@ -1038,14 +1037,14 @@ export function recommendTeamsGrid(
 	}
 
 	function limitedUseLabel(r) {
-		if (!r || !r.item) return "Limited-use";
+		if (!r?.item) return "Limited-use";
 		if (r.item.type === "ultimate") return "Limited-use U.C. Ability";
 		if (r.item.type === "gear") return "Limited-use Gear C. Ability";
 		return "Limited-use";
 	}
 
 	function isLimitedUseActiveUtility(r, cap) {
-		if (!r || !r.item || !cap) return false;
+		if (!r?.item || !cap) return false;
 		if (r.item.type !== "ultimate" && r.item.type !== "gear") return false;
 		if (cap.kind === "dmg" || cap.kind === "heal") return false;
 		if (cap.mode === "passive") return false;
@@ -1154,7 +1153,7 @@ export function recommendTeamsGrid(
 
 	function getCoverageMapForItem(r, isMemberAnchor, isDpsAnchor) {
 		const map = new Map();
-		if (!r || !r.capabilities) return map;
+		if (!r?.capabilities) return map;
 
 		r.capabilities.forEach((cap) => {
 			if (cap.custom !== null && cap.custom !== r.chosenCustom) return;
@@ -1204,7 +1203,7 @@ export function recommendTeamsGrid(
 		let score = 0;
 
 		coverage.forEach((entry, key) => {
-			const prev = localCoverageMap && localCoverageMap.get(key);
+			const prev = localCoverageMap?.get(key);
 			if (!prev) {
 				score += entry.score;
 			} else if (entry.score > prev.score) {
@@ -1244,8 +1243,8 @@ export function recommendTeamsGrid(
 
 	function getSuitingDamage(r, chosenCustom, options) {
 		if (!r) return 0;
-		const requireExactElement = !!(options && options.requireExactElement);
-		const contextBase = options && options.context ? options.context : {};
+		const requireExactElement = !!options?.requireExactElement;
+		const contextBase = options?.context ? options.context : {};
 		let best = 0;
 		customOptionsFor(r, chosenCustom).forEach((opt) => {
 			r.damage.forEach((d) => {
@@ -1277,7 +1276,7 @@ export function recommendTeamsGrid(
 	}
 
 	function hasAllCureSupport(r, chosenCustom) {
-		if (!r || !r.capabilities) return false;
+		if (!r?.capabilities) return false;
 		let found = false;
 		customOptionsFor(r, chosenCustom).forEach((opt) => {
 			r.capabilities.forEach((cap) => {
@@ -1317,12 +1316,7 @@ export function recommendTeamsGrid(
 	}
 
 	function isRegularWeapon(r) {
-		return !!(
-			r &&
-			r.item &&
-			r.item.type !== "gear" &&
-			r.item.type !== "ultimate"
-		);
+		return !!(r?.item && r.item.type !== "gear" && r.item.type !== "ultimate");
 	}
 
 	function getDirectWeaponHealPotency(r, chosenCustom) {
@@ -1487,7 +1481,7 @@ export function recommendTeamsGrid(
 		return false;
 	}
 
-	function chooseBestCustom(raw, isAnchor, localCoverageMap, roleKind) {
+	function _chooseBestCustom(raw, isAnchor, localCoverageMap, roleKind) {
 		const isDpsAnchor = roleKind === "dps" || roleKind === "dpsHealer";
 		let bestCustom = null;
 		let bestScore = -Infinity;
@@ -1591,7 +1585,6 @@ export function recommendTeamsGrid(
 						const category = getAnchorHealerCategory(raw, opt);
 						if (category <= 0) return;
 
-						const anchorHealerScore = getAnchorHealerScore(raw, opt);
 						const incrementalCoverage = getIncrementalCoverageScoreForItem(
 							raw,
 							true,
@@ -1624,9 +1617,7 @@ export function recommendTeamsGrid(
 								: category * 1000000000000 +
 									incrementalCoverage * 1000000 +
 									partyExcess * 1000 +
-									nominalExcess +
-									anchorHealerScore;
-
+									nominalExcess;
 						if (score > bestScore) {
 							bestScore = score;
 							bestIdx = i;
@@ -1771,10 +1762,12 @@ export function recommendTeamsGrid(
 				gearPick = Object.assign({}, gearPool[bestIdx], {
 					chosenCustom: bestCustom,
 				});
-				getCoverageMapForItem(gearPick, isAnchor, isDpsAnchor).forEach((v, k) => {
-					const prev = localCoverageMap.get(k);
-					if (!prev || v.score > prev.score) localCoverageMap.set(k, v);
-				});
+				getCoverageMapForItem(gearPick, isAnchor, isDpsAnchor).forEach(
+					(v, k) => {
+						const prev = localCoverageMap.get(k);
+						if (!prev || v.score > prev.score) localCoverageMap.set(k, v);
+					},
+				);
 			}
 		}
 
@@ -1830,22 +1823,31 @@ export function recommendTeamsGrid(
 		.sort((a, b) => b.topHealScore - a.topHealScore);
 	const runtimeWarnings = [];
 
+	function loadoutSlots(lo, sustainedOnly = false) {
+		return (
+			sustainedOnly
+				? [lo.weapons[0], lo.weapons[1]]
+				: [lo.weapons[0], lo.weapons[1], lo.ultimate, lo.gear]
+		).filter(Boolean);
+	}
+
+	function isAnchorRole(roleKind) {
+		return (
+			roleKind === "dps" || roleKind === "healer" || roleKind === "dpsHealer"
+		);
+	}
+
 	function getTeamCoverageMap(loadouts) {
 		const teamMap = new Map();
 		loadouts.forEach((m) => {
-			const isAnchor =
-				m.roleKind === "dps" ||
-				m.roleKind === "healer" ||
-				m.roleKind === "dpsHealer";
+			const isAnchor = isAnchorRole(m.roleKind);
 			const isDpsAnchor = m.roleKind === "dps" || m.roleKind === "dpsHealer";
-			[m.lo.weapons[0], m.lo.weapons[1], m.lo.ultimate, m.lo.gear]
-				.filter(Boolean)
-				.forEach((it) => {
-					getCoverageMapForItem(it, isAnchor, isDpsAnchor).forEach((v, k) => {
-						const prev = teamMap.get(k);
-						if (!prev || v.score > prev.score) teamMap.set(k, v);
-					});
+			loadoutSlots(m.lo).forEach((it) => {
+				getCoverageMapForItem(it, isAnchor, isDpsAnchor).forEach((v, k) => {
+					const prev = teamMap.get(k);
+					if (!prev || v.score > prev.score) teamMap.set(k, v);
 				});
+			});
 		});
 		return teamMap;
 	}
@@ -1862,47 +1864,40 @@ export function recommendTeamsGrid(
 				m.lo.anchorHealerQualified
 			)
 				sig.teamHasAnchorHealer = true;
-			const isAnchor =
-				m.roleKind === "dps" ||
-				m.roleKind === "healer" ||
-				m.roleKind === "dpsHealer";
+			const isAnchor = isAnchorRole(m.roleKind);
 			const isDpsAnchor = m.roleKind === "dps" || m.roleKind === "dpsHealer";
-			[m.lo.weapons[0], m.lo.weapons[1], m.lo.ultimate, m.lo.gear]
-				.filter(Boolean)
-				.forEach((it) => {
-					if (!it.capabilities) return;
-					it.capabilities.forEach((cap) => {
-						if (cap.custom !== null && cap.custom !== it.chosenCustom) return;
-						if (!isTokenImpacting(cap, isAnchor, isDpsAnchor)) return;
-						if (cap.kind === "debuff") sig.teamHasDebuff = true;
-						if (cap.kind === "buff") sig.teamHasBuff = true;
-					});
+			loadoutSlots(m.lo).forEach((it) => {
+				if (!it.capabilities) return;
+				it.capabilities.forEach((cap) => {
+					if (cap.custom !== null && cap.custom !== it.chosenCustom) return;
+					if (!isTokenImpacting(cap, isAnchor, isDpsAnchor)) return;
+					if (cap.kind === "debuff") sig.teamHasDebuff = true;
+					if (cap.kind === "buff") sig.teamHasBuff = true;
 				});
+			});
 		});
 		return sig;
 	}
 
-	// A loadout "has Provoke" if any of its chosen items carries a provoke buff
-	// capability that is active (not gated behind an unchosen custom option).
+	// A loadout "has Provoke" if any of its chosen items carries an active
+	// (non-passive, non-unchosen-custom) provoke buff capability.
 	function loadoutHasProvoke(lo) {
 		if (!lo) return false;
-		return [lo.weapons[0], lo.weapons[1], lo.ultimate, lo.gear]
-			.filter(Boolean)
-			.some((it) => {
-				if (!it.capabilities) return false;
-				return it.capabilities.some((cap) => {
-					if (cap.custom !== null && cap.custom !== it.chosenCustom) return false;
-					if (cap.mode === "passive") return false;
-					return cap.kind === "buff" && cap.type === "provoke";
-				});
+		return loadoutSlots(lo).some((it) => {
+			if (!it.capabilities) return false;
+			return it.capabilities.some((cap) => {
+				if (cap.custom !== null && cap.custom !== it.chosenCustom) return false;
+				if (cap.mode === "passive") return false;
+				return cap.kind === "buff" && cap.type === "provoke";
 			});
+		});
 	}
 
-	// Sustained Provoke comes from a regular weapon (always available). Limited
+	// Sustained Provoke comes from a regular weapon (always available); limited
 	// Provoke comes from an Ultimate Weapon U.C. Ability or a Gear C. Ability.
 	function loadoutHasSustainedProvoke(lo) {
 		if (!lo) return false;
-		return [lo.weapons[0], lo.weapons[1]].filter(Boolean).some((it) => {
+		return loadoutSlots(lo, true).some((it) => {
 			if (!it.capabilities) return false;
 			return it.capabilities.some((cap) => {
 				if (cap.custom !== null && cap.custom !== it.chosenCustom) return false;
@@ -1914,11 +1909,9 @@ export function recommendTeamsGrid(
 
 	function recomputeLoadoutDps(loadout, teamSignals) {
 		const requireExactElementForProfile = hasElementTarget();
-		const sustainedDpsSlots = [loadout.weapons[0], loadout.weapons[1]].filter(
-			Boolean,
-		);
-		// Only one regular weapon can be the sustained anchor DPS source.
-		// Gear/UW C. Ability potency is intentionally excluded because it is limited-use burst.
+		// Sustained DPS uses only regular weapons; Gear/UW C. Ability potency is
+		// limited-use burst and is intentionally excluded.
+		const sustainedDpsSlots = loadoutSlots(loadout, true);
 		return Math.max(
 			...sustainedDpsSlots.map((it) =>
 				getSuitingDamage(it, undefined, {
@@ -1975,16 +1968,13 @@ export function recommendTeamsGrid(
 			// Designate the Provoke carrier as the Tank. Prefer a sustained source
 			// carrier; otherwise any carrier. If the carrier is primarily a DPS or
 			// Healer, show the Tank role as a secondary role alongside their main role.
-			const tankMember = loadouts.find((m) =>
-				loadoutHasSustainedProvoke(m.lo),
-			) || loadouts.find((m) => loadoutHasProvoke(m.lo));
+			const tankMember =
+				loadouts.find((m) => loadoutHasSustainedProvoke(m.lo)) ||
+				loadouts.find((m) => loadoutHasProvoke(m.lo));
 			if (tankMember) {
 				const primary = tankMember.role || "";
-				const isPrimaryDpsOrHealer =
-					/anchor\s+dps|healer/i.test(primary);
-				tankMember.role = isPrimaryDpsOrHealer
-					? `${primary} · Tank`
-					: "Tank";
+				const isPrimaryDpsOrHealer = /anchor\s+dps|healer/i.test(primary);
+				tankMember.role = isPrimaryDpsOrHealer ? `${primary} · Tank` : "Tank";
 				tankMember.roleKind = isPrimaryDpsOrHealer
 					? tankMember.roleKind
 					: "tank";
@@ -2216,7 +2206,7 @@ export function recommendTeamsGrid(
 					.join("+"),
 			)
 			.join("|");
-		return charsSig + "||" + equipsSig;
+		return `${charsSig}||${equipsSig}`;
 	}
 
 	function isCoverageSubset(candidate, selected) {
@@ -2290,10 +2280,10 @@ export function recommendTeamsGrid(
 		while (row.length < OUT_COLS) row.push("");
 		return row;
 	}
-	function joinLimited(parts, limit) {
+	function _joinLimited(parts, limit) {
 		const clean = parts.filter(Boolean);
 		if (clean.length <= limit) return clean.join(", ");
-		return clean.slice(0, limit).join(", ") + `, +${clean.length - limit} more`;
+		return `${clean.slice(0, limit).join(", ")}, +${clean.length - limit} more`;
 	}
 
 	outputGrid.push(
@@ -2419,12 +2409,12 @@ export function recommendTeamsGrid(
 					effective !== d.pot
 						? `${d.pot}%→${effective}% ${archLabel(d.arch)}/${elemLabel(d.elem)}`
 						: `${d.pot}% ${archLabel(d.arch)}/${elemLabel(d.elem)}`;
-				if (d.mods && d.mods.length) {
+				if (d.mods?.length) {
 					d.mods.forEach((mod) => {
 						if (mod.mult && effective === d.pot)
 							display += ` [x${mod.mult} if ${modDisplayWhen(mod.when)}]`;
 						if (mod.add)
-							display += ` [+${mod.add} dmg${mod.when ? " if " + modDisplayWhen(mod.when) : ""}]`;
+							display += ` [+${mod.add} dmg${mod.when ? ` if ${modDisplayWhen(mod.when)}` : ""}]`;
 					});
 				}
 				if (!contributesToTarget) display += " [Off-profile]";
@@ -2463,8 +2453,7 @@ export function recommendTeamsGrid(
 	}
 
 	function capDisplay(cap) {
-		if (cap.kind === "heal")
-			return `Heal${cap.tier ? " " + cap.tier + "%" : ""}`;
+		if (cap.kind === "heal") return `Heal${cap.tier ? ` ${cap.tier}%` : ""}`;
 		let display = effectDisplayName(
 			cap.kind,
 			cap.type,
@@ -2481,7 +2470,7 @@ export function recommendTeamsGrid(
 	}
 
 	function getUtilList(r, isMemberAnchor, includePassive, isDpsAnchor) {
-		if (!r || !r.capabilities) return [];
+		if (!r?.capabilities) return [];
 		const utils = [];
 		r.capabilities.forEach((cap) => {
 			if (cap.custom !== null && cap.custom !== r.chosenCustom) return;
@@ -2498,7 +2487,7 @@ export function recommendTeamsGrid(
 	}
 
 	function getItemDisplayName(r) {
-		if (!r || !r.item) return "";
+		if (!r?.item) return "";
 		let name = r.item.name;
 		if (r.chosenCustom)
 			name +=
@@ -2526,31 +2515,13 @@ export function recommendTeamsGrid(
 	) {
 		if (!r) return "";
 		const potency = getPotencyDetail(r, teamSignals, includeDamage);
-		const util = getUtilList(
-			r,
-			isAnchor,
-			includePassive,
-			isDpsAnchor,
-		).join(" | ");
+		const util = getUtilList(r, isAnchor, includePassive, isDpsAnchor).join(
+			" | ",
+		);
 		const bits = [getItemDisplayName(r)];
 		if (potency) bits.push(potency);
 		if (util && util !== "None") bits.push(util);
 		return bits.join(" — ");
-	}
-
-	function getAnchorHealerLoadoutHeal(loadouts) {
-		const anchorHealer = loadouts.find(
-			(m) =>
-				m.roleKind === "healer" ||
-				m.role === "Anchor Healer" ||
-				/anchor\s+healer/i.test(m.role || ""),
-		);
-
-		if (anchorHealer && anchorHealer.lo) return anchorHealer.lo.heal || 0;
-
-		// Fallback for unusual role layouts: use the strongest actual healer-like
-		// loadout, not summed incidental team healing.
-		return Math.max(...loadouts.map((m) => m.lo?.heal || 0), 0);
 	}
 
 	function getTeamHeadlineHeal(team) {
@@ -2563,7 +2534,7 @@ export function recommendTeamsGrid(
 				/anchor\s+healer/i.test(m.role || ""),
 		);
 
-		if (anchorHealer && anchorHealer.lo) return anchorHealer.lo.heal || 0;
+		if (anchorHealer?.lo) return anchorHealer.lo.heal || 0;
 
 		// Fallback: prefer a loadout that actually qualified as anchor healer.
 		const qualified = loadouts
@@ -2620,7 +2591,7 @@ export function recommendTeamsGrid(
 			team.coveredTokensDisplay || "No desired utility coverage";
 		outputGrid.push(
 			pad([
-				"Build #" + (k + 1),
+				`Build #${k + 1}`,
 				"Team Summary",
 				team.loadouts.map((m) => `${m.cd.character} (${m.role})`).join(" / "),
 				"",
@@ -2658,8 +2629,7 @@ export function recommendTeamsGrid(
 						),
 					);
 				});
-			// Effects are shown inline on each equipment slot in the UI. Keep the
-			// legacy grid columns empty to avoid duplicate display in build cards.
+			// Effects render inline on each slot in the UI, so these grid columns stay empty.
 			const rowEffects = "";
 			const notes = "";
 			outputGrid.push(
@@ -2683,8 +2653,22 @@ export function recommendTeamsGrid(
 						shouldShowWeaponDamage(member, member.lo.weapons[1]),
 						isDpsAnchor,
 					),
-					slotSummary(member.lo.ultimate, teamSignals, isAnchor, true, false, isDpsAnchor),
-					slotSummary(member.lo.gear, teamSignals, isAnchor, true, false, isDpsAnchor),
+					slotSummary(
+						member.lo.ultimate,
+						teamSignals,
+						isAnchor,
+						true,
+						false,
+						isDpsAnchor,
+					),
+					slotSummary(
+						member.lo.gear,
+						teamSignals,
+						isAnchor,
+						true,
+						false,
+						isDpsAnchor,
+					),
 					`DPS ${member.lo.dps}% / Heal ${member.lo.heal}%`,
 					rowEffects,
 					notes,

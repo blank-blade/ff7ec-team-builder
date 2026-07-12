@@ -52,16 +52,12 @@ export function parseDelimited(text) {
 	return parseSeparated(raw, delimiter);
 }
 
-export function parseCsv(text) {
-	return parseSeparated(String(text || "").replace(/^\uFEFF/, ""), ",");
-}
-
 function parseSeparated(text, delimiter) {
 	const rows = [];
 	let row = [];
 	let field = "";
 	let inQuotes = false;
-	const s = String(text || "").replace(/^\uFEFF/, "");
+	const s = String(text || "");
 
 	for (let i = 0; i < s.length; i++) {
 		const ch = s[i];

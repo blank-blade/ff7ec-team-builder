@@ -1,5 +1,13 @@
 const EQUIPMENTS_SHEET_NAME = "Equipments";
 const PRESETS_SHEET_NAME = "Presets";
+const CONTROL_IDS = [
+	"sheetUrl",
+	"preset",
+	"weakArch",
+	"weakElem",
+	"damageAssumption",
+	"themeMode",
+];
 
 function countEquipmentTypes(rows) {
 	const counts = { weapon: 0, ultimate: 0, gear: 0 };
@@ -63,8 +71,8 @@ function buildStatusMessage(count) {
 	return `${n} recommended teams are ready.`;
 }
 
-function friendlyFailureMessage(error) {
-	const detail = error && error.message ? String(error.message) : "";
+function _friendlyFailureMessage(error) {
+	const detail = error?.message ? String(error.message) : "";
 	if (/fetch|network|failed to load|cors/i.test(detail)) {
 		return "Could not load the equipment data. Check the sheet link or your connection.";
 	}
@@ -98,7 +106,7 @@ const ELEMENT_LABEL = {
 	earth: "Earth",
 	nonelem: "Non-elem",
 };
-const ARCH_LABEL = { phys: "Physical", mag: "Magical", hybrid: "Hybrid" };
+const _ARCH_LABEL = { phys: "Physical", mag: "Magical", hybrid: "Hybrid" };
 
 const QUICK_PRESETS = {
 	"phys-fire": {
@@ -215,14 +223,7 @@ function loadSavedState() {
 		Object.assign(state, JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"));
 	} catch (_) {}
 	renderPresetOptions();
-	for (const id of [
-		"sheetUrl",
-		"preset",
-		"weakArch",
-		"weakElem",
-		"damageAssumption",
-		"themeMode",
-	]) {
+	for (const id of CONTROL_IDS) {
 		if ($(id) && state[id] !== undefined) $(id).value = state[id];
 	}
 	$("healerNeeded").checked = Boolean(state.healerNeeded);
@@ -234,28 +235,14 @@ function persistState() {
 }
 
 function readControlsIntoState() {
-	for (const id of [
-		"sheetUrl",
-		"preset",
-		"weakArch",
-		"weakElem",
-		"damageAssumption",
-		"themeMode",
-	]) {
+	for (const id of CONTROL_IDS) {
 		state[id] = $(id).value;
 	}
 	state.healerNeeded = $("healerNeeded").checked;
 }
 
 function writeStateToControls() {
-	for (const id of [
-		"sheetUrl",
-		"preset",
-		"weakArch",
-		"weakElem",
-		"damageAssumption",
-		"themeMode",
-	]) {
+	for (const id of CONTROL_IDS) {
 		if ($(id)) $(id).value = state[id] || (id === "themeMode" ? "system" : "");
 	}
 	$("healerNeeded").checked = Boolean(state.healerNeeded);
@@ -936,55 +923,6 @@ function renderEmpty(message) {
 	$("results").innerHTML = escapeHtml(message);
 }
 
-function renderCoveredEffects(result, domain) {
-	const selected = currentEffectDefs().filter(
-		(effect) => effect.domain === domain && state.selectedEffects[effect.id],
-	);
-	if (!selected.length) return "";
-
-	const coveredLabels = new Set();
-	for (const build of result?.builds || [])
-		parseCsvList(build.summary?.coverage).forEach((label) =>
-			coveredLabels.add(normalizeEffectLabel(label)),
-		);
-
-	const coveredCount = selected.filter((effect) =>
-		coveredLabels.has(normalizeEffectLabel(effect.label)),
-	).length;
-	const buffs = selected.filter((effect) => effect.kind === EFFECT_KIND.BUFF);
-	const debuffs = selected.filter(
-		(effect) => effect.kind === EFFECT_KIND.DEBUFF,
-	);
-
-	return `
-    <article class="panel">
-      <div class="mb-3 flex items-center justify-between gap-3">
-        <h2 class="panel-title">${domain === EFFECT_DOMAIN.OFFENSE ? "Offensive coverage" : "Defensive coverage"}</h2>
-        <span class="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-600 dark:bg-slate-800 dark:text-slate-200">${coveredCount}/${selected.length}</span>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        ${renderCoveredGroup(buffs, coveredLabels)}
-        ${renderCoveredGroup(debuffs, coveredLabels)}
-      </div>
-    </article>
-  `;
-}
-
-function renderCoveredGroup(effects, coveredLabels) {
-	if (!effects.length) return "";
-	return effects
-		.map((effect) => {
-			const covered = coveredLabels.has(normalizeEffectLabel(effect.label));
-			const kindClass =
-				effect.kind === EFFECT_KIND.BUFF
-					? "effect-chip-buff"
-					: "effect-chip-debuff";
-			const special = effect.token === "provoke" ? "effect-chip-special" : "";
-			return `<span class="effect-chip ${kindClass} ${special} ${covered ? "" : "effect-chip-missing"}" data-effect-hover="${escapeHtml(normalizeEffectLabel(effect.label))}" data-effect-hover-source="coverage" title="Hover to highlight matching equipment"><span class="toggle-box" aria-hidden="true">${covered ? "✓" : ""}</span>${escapeHtml(effect.label)}</span>`;
-		})
-		.join("");
-}
-
 function renderBuildCard(build, index) {
 	const summary = build.summary || {};
 	const coverageStats = getBuildCoverageStats(build);
@@ -1064,7 +1002,9 @@ function rolePill(role) {
 			: "inline-flex shrink-0 rounded-md bg-slate-100 px-2 py-1 text-xs font-black uppercase tracking-[0.10em] text-slate-600 dark:bg-slate-800 dark:text-slate-200";
 		return `<span class="${cls}">${escapeHtml(short)}</span>`;
 	});
-	return pills.join('<span class="text-slate-300 dark:text-slate-600">·</span>');
+	return pills.join(
+		'<span class="text-slate-300 dark:text-slate-600">·</span>',
+	);
 }
 
 function compactTeamPotency(value) {
@@ -1150,7 +1090,8 @@ function renderBuildCoverageGroup(title, effects, coveredLabels) {
 						effect.kind === EFFECT_KIND.BUFF
 							? "effect-chip-buff"
 							: "effect-chip-debuff";
-					const special = effect.token === "provoke" ? "effect-chip-special" : "";
+					const special =
+						effect.token === "provoke" ? "effect-chip-special" : "";
 					return `<span class="effect-chip ${kindClass} ${special} ${covered ? "" : "effect-chip-missing"}" data-effect-hover="${escapeHtml(normalizeEffectLabel(effect.label))}" data-effect-hover-source="coverage" title="Hover to highlight matching equipment"><span class="toggle-box" aria-hidden="true">${covered ? "✓" : ""}</span>${escapeHtml(effect.label)}</span>`;
 				})
 				.join("")}
@@ -1502,15 +1443,7 @@ function handleControlChange(event) {
 }
 
 function bindInputs() {
-	for (const id of [
-		"sheetUrl",
-		"preset",
-		"weakArch",
-		"weakElem",
-		"damageAssumption",
-		"healerNeeded",
-		"themeMode",
-	]) {
+	for (const id of [...CONTROL_IDS, "healerNeeded"]) {
 		$(id).addEventListener("input", handleControlChange);
 		$(id).addEventListener("change", handleControlChange);
 	}

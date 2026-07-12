@@ -1287,7 +1287,12 @@ function renderSlotDetailChips(parts, inactive = false) {
 			const normalized = normalizeEffectLabel(part);
 			const limitedUse = /\[Limited-use/i.test(part);
 			const passive = /\[Passive\]/i.test(part);
-			const kindClass = effectKindClassFromText(part);
+			// Provoke is a special defensive buff: keep its distinguished amber
+			// colour consistent with the toggle and coverage pills.
+			const kindClass =
+				normalized === "provoke"
+					? "effect-chip-special"
+					: effectKindClassFromText(part);
 			const stateClass = inactive
 				? "opacity-65"
 				: limitedUse
@@ -1307,11 +1312,16 @@ function effectChipsFromCsv(text) {
 	return items
 		.map((item) => {
 			const normalized = normalizeEffectLabel(item);
-			const kindClass = looksDebuff(item)
-				? "effect-chip-debuff"
-				: looksBuff(item)
-					? "effect-chip-buff"
-					: "effect-chip-neutral";
+			// Provoke is a special defensive buff: keep its distinguished amber
+			// colour consistent with the toggle and coverage pills.
+			const kindClass =
+				normalized === "provoke"
+					? "effect-chip-special"
+					: looksDebuff(item)
+						? "effect-chip-debuff"
+						: looksBuff(item)
+							? "effect-chip-buff"
+							: "effect-chip-neutral";
 			return `<span class="effect-chip ${kindClass}" data-effect-hover="${escapeHtml(normalized)}">${escapeHtml(item)}</span>`;
 		})
 		.join("");

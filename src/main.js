@@ -556,6 +556,17 @@ function buildEffectDefs(weakArch, weakElem) {
 	const elements = ["fire", "ice", "lightning", "wind", "water", "earth"];
 	defs.push(
 		makeEffect({
+			id: "def-buff-provoke",
+			kind: EFFECT_KIND.BUFF,
+			domain: EFFECT_DOMAIN.DEFENSE,
+			group: "Defensive buffs · Defense",
+			label: "Provoke",
+			token: "provoke",
+			defaultOn: false,
+		}),
+	);
+	defs.push(
+		makeEffect({
 			id: "def-buff-pdef-up",
 			kind: EFFECT_KIND.BUFF,
 			domain: EFFECT_DOMAIN.DEFENSE,
@@ -745,8 +756,13 @@ function renderToggleChip(effect, isCovered) {
 		effect.kind === EFFECT_KIND.BUFF
 			? "chip-buff-active"
 			: "chip-debuff-active";
+	// Provoke is a special defensive buff: give it a distinguished ring/colour so
+	// it stands out from the regular buff/debuff toggles.
+	const isProvoke = effect.token === "provoke";
+	const special = isProvoke ? "chip-special" : "";
+	const specialActive = isProvoke ? "chip-special-active" : "";
 	return `
-    <button type="button" class="chip-button ${selected ? active : base}" data-effect-toggle="${escapeHtml(effect.id)}" aria-pressed="${selected}">
+    <button type="button" class="chip-button ${isProvoke ? (selected ? specialActive : special) : selected ? active : base}" data-effect-toggle="${escapeHtml(effect.id)}" aria-pressed="${selected}">
       <span class="toggle-box" aria-hidden="true">${selected ? "✓" : ""}</span>
       <span>${escapeHtml(effect.label)}</span>
       ${isCovered ? '<span class="sr-only">covered</span>' : ""}
@@ -963,7 +979,8 @@ function renderCoveredGroup(effects, coveredLabels) {
 				effect.kind === EFFECT_KIND.BUFF
 					? "effect-chip-buff"
 					: "effect-chip-debuff";
-			return `<span class="effect-chip ${kindClass} ${covered ? "" : "effect-chip-missing"}" data-effect-hover="${escapeHtml(normalizeEffectLabel(effect.label))}" data-effect-hover-source="coverage" title="Hover to highlight matching equipment"><span class="toggle-box" aria-hidden="true">${covered ? "✓" : ""}</span>${escapeHtml(effect.label)}</span>`;
+			const special = effect.token === "provoke" ? "effect-chip-special" : "";
+			return `<span class="effect-chip ${kindClass} ${special} ${covered ? "" : "effect-chip-missing"}" data-effect-hover="${escapeHtml(normalizeEffectLabel(effect.label))}" data-effect-hover-source="coverage" title="Hover to highlight matching equipment"><span class="toggle-box" aria-hidden="true">${covered ? "✓" : ""}</span>${escapeHtml(effect.label)}</span>`;
 		})
 		.join("");
 }
@@ -1029,14 +1046,25 @@ function roleShort(role) {
 	if (text.includes("dps")) return "DPS";
 	if (text.includes("healer")) return "Healer";
 	if (text.includes("support")) return "Support";
+	if (text.includes("tank")) return "Tank";
 	return role || "";
 }
 
+// Render a role label that may carry a secondary "· Tank" suffix, e.g.
+// "Anchor DPS · Tank" -> "DPS · Tank". The Tank portion is highlighted.
 function rolePill(role) {
-	const text = roleShort(role);
-	return text
-		? `<span class="inline-flex shrink-0 rounded-md bg-slate-100 px-2 py-1 text-xs font-black uppercase tracking-[0.10em] text-slate-600 dark:bg-slate-800 dark:text-slate-200">${escapeHtml(text)}</span>`
-		: "";
+	const text = String(role || "").trim();
+	if (!text) return "";
+	const parts = text.split("·").map((p) => p.trim());
+	const pills = parts.map((part) => {
+		const short = roleShort(part);
+		const isTank = /tank/i.test(part);
+		const cls = isTank
+			? "inline-flex shrink-0 rounded-md bg-amber-100 px-2 py-1 text-xs font-black uppercase tracking-[0.10em] text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
+			: "inline-flex shrink-0 rounded-md bg-slate-100 px-2 py-1 text-xs font-black uppercase tracking-[0.10em] text-slate-600 dark:bg-slate-800 dark:text-slate-200";
+		return `<span class="${cls}">${escapeHtml(short)}</span>`;
+	});
+	return pills.join('<span class="text-slate-300 dark:text-slate-600">·</span>');
 }
 
 function compactTeamPotency(value) {
@@ -1122,7 +1150,8 @@ function renderBuildCoverageGroup(title, effects, coveredLabels) {
 						effect.kind === EFFECT_KIND.BUFF
 							? "effect-chip-buff"
 							: "effect-chip-debuff";
-					return `<span class="effect-chip ${kindClass} ${covered ? "" : "effect-chip-missing"}" data-effect-hover="${escapeHtml(normalizeEffectLabel(effect.label))}" data-effect-hover-source="coverage" title="Hover to highlight matching equipment"><span class="toggle-box" aria-hidden="true">${covered ? "✓" : ""}</span>${escapeHtml(effect.label)}</span>`;
+					const special = effect.token === "provoke" ? "effect-chip-special" : "";
+					return `<span class="effect-chip ${kindClass} ${special} ${covered ? "" : "effect-chip-missing"}" data-effect-hover="${escapeHtml(normalizeEffectLabel(effect.label))}" data-effect-hover-source="coverage" title="Hover to highlight matching equipment"><span class="toggle-box" aria-hidden="true">${covered ? "✓" : ""}</span>${escapeHtml(effect.label)}</span>`;
 				})
 				.join("")}
     </div>

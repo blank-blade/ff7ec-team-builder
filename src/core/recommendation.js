@@ -86,6 +86,9 @@ export function recommendTeamsGrid(
 		"removeStop",
 		"removePatkDown",
 		"removeMatkDown",
+		// Provoke is always self-range; it is the Tank's personal defensive role and
+		// should always satisfy the desired coverage regardless of anchor status.
+		"provoke",
 	]);
 	const OFFENSIVE_BUFF_TYPES = new Set([
 		"patkUp",
@@ -531,6 +534,9 @@ export function recommendTeamsGrid(
 
 	const explicitBuffs = parseDesiredList(wantBuffsStr, "buff");
 	const explicitDebuffs = parseDesiredList(wantDebuffsStr, "debuff");
+	// Provoke is a special defensive buff: when selected, every recommended team
+	// must include a Provoke source, and the carrier is designated as the Tank.
+	const provokeRequired = explicitBuffs.some((d) => d.type === "provoke");
 	const implicitBuffs = [];
 	const implicitUtility = [];
 	const synergyDisplayList = [];
@@ -1748,6 +1754,9 @@ export function recommendTeamsGrid(
 	}
 
 	let bestTeams = [];
+	// Set true while evaluating a team that only has a limited-use (UW/Gear) Provoke
+	// source, so ranking can prefer teams with a sustained (weapon) Provoke.
+	let teamUsesLimitedProvoke = false;
 	const anchors = chars
 		.filter((c) => (c.topAnchorDpsScore || 0) > 0)
 		.sort((a, b) => b.topAnchorDpsScore - a.topAnchorDpsScore);
@@ -1814,6 +1823,36 @@ export function recommendTeamsGrid(
 		return sig;
 	}
 
+	// A loadout "has Provoke" if any of its chosen items carries a provoke buff
+	// capability that is active (not gated behind an unchosen custom option).
+	function loadoutHasProvoke(lo) {
+		if (!lo) return false;
+		return [lo.weapons[0], lo.weapons[1], lo.ultimate, lo.gear]
+			.filter(Boolean)
+			.some((it) => {
+				if (!it.capabilities) return false;
+				return it.capabilities.some((cap) => {
+					if (cap.custom !== null && cap.custom !== it.chosenCustom) return false;
+					if (cap.mode === "passive") return false;
+					return cap.kind === "buff" && cap.type === "provoke";
+				});
+			});
+	}
+
+	// Sustained Provoke comes from a regular weapon (always available). Limited
+	// Provoke comes from an Ultimate Weapon U.C. Ability or a Gear C. Ability.
+	function loadoutHasSustainedProvoke(lo) {
+		if (!lo) return false;
+		return [lo.weapons[0], lo.weapons[1]].filter(Boolean).some((it) => {
+			if (!it.capabilities) return false;
+			return it.capabilities.some((cap) => {
+				if (cap.custom !== null && cap.custom !== it.chosenCustom) return false;
+				if (cap.mode === "passive") return false;
+				return cap.kind === "buff" && cap.type === "provoke";
+			});
+		});
+	}
+
 	function recomputeLoadoutDps(loadout, teamSignals) {
 		const requireExactElementForProfile = hasElementTarget();
 		const sustainedDpsSlots = [loadout.weapons[0], loadout.weapons[1]].filter(
@@ -1840,6 +1879,7 @@ export function recommendTeamsGrid(
 	}
 
 	function evaluateTeam(assignments) {
+		teamUsesLimitedProvoke = false;
 		let trackingCoveredBases = new Map();
 		const loadouts = [];
 		assignments.forEach((a) => {
@@ -1857,6 +1897,40 @@ export function recommendTeamsGrid(
 			)
 		)
 			return;
+
+		// When Provoke is selected, every recommended team must include a Provoke
+		// source. Prefer a sustained (regular-weapon) source; a limited-use
+		// Ultimate/Gear source is accepted only if no sustained source exists.
+		if (provokeRequired) {
+			const hasSustained = loadouts.some((m) =>
+				loadoutHasSustainedProvoke(m.lo),
+			);
+			const hasAny = loadouts.some((m) => loadoutHasProvoke(m.lo));
+			if (!hasAny) return;
+			if (!hasSustained) {
+				// No sustained source available in this team: only keep it if no
+				// other generated team offers a sustained source (handled at ranking).
+				teamUsesLimitedProvoke = true;
+			}
+
+			// Designate the Provoke carrier as the Tank. Prefer a sustained source
+			// carrier; otherwise any carrier. If the carrier is primarily a DPS or
+			// Healer, show the Tank role as a secondary role alongside their main role.
+			const tankMember = loadouts.find((m) =>
+				loadoutHasSustainedProvoke(m.lo),
+			) || loadouts.find((m) => loadoutHasProvoke(m.lo));
+			if (tankMember) {
+				const primary = tankMember.role || "";
+				const isPrimaryDpsOrHealer =
+					/anchor\s+dps|healer/i.test(primary);
+				tankMember.role = isPrimaryDpsOrHealer
+					? `${primary} · Tank`
+					: "Tank";
+				tankMember.roleKind = isPrimaryDpsOrHealer
+					? tankMember.roleKind
+					: "tank";
+			}
+		}
 		const teamSignals = getTeamSignals(loadouts);
 		loadouts.forEach((m) => {
 			m.lo.dps = recomputeLoadoutDps(m.lo, teamSignals);
@@ -1928,6 +2002,7 @@ export function recommendTeamsGrid(
 			loadouts,
 			anchorDps: getAnchorLoadoutDps(loadouts),
 			anchorHealerScore: teamAnchorHealerScore,
+			usesLimitedProvoke: provokeRequired && teamUsesLimitedProvoke,
 			coverageCount: satisfiedKeys.length,
 			coveragePower,
 			foundationalCoverageCount,
@@ -2039,6 +2114,12 @@ export function recommendTeamsGrid(
 
 	bestTeams.sort(
 		(a, b) =>
+			// When Provoke is required, strongly prefer teams with a sustained
+			// (regular-weapon) Provoke source over teams relying on limited-use
+			// Ultimate/Gear Provoke.
+			(provokeRequired
+				? (a.usesLimitedProvoke ? 1 : 0) - (b.usesLimitedProvoke ? 1 : 0)
+				: 0) ||
 			// First preserve pyramid foundations. Missing Layer 1/2 support should lose.
 			b.foundationalCoverageCount - a.foundationalCoverageCount ||
 			// Once foundations are equal, sustained Anchor DPS is the headline axis.

@@ -1216,8 +1216,79 @@ export function recommendTeamsGrid(
 		return score;
 	}
 
+	// Total coverage quality a weapon provides for the selected effects, regardless
+	// of whether those effects are already covered by the team. Used as a
+	// tie-breaker for non-DPS roles so a weapon that covers MORE distinct wanted
+	// effects (e.g. Stream Guard: MDEF Down + MATK Up) is preferred over a
+	// strictly narrower one (e.g. Arc Sword: MDEF Down only) when their
+	// incremental contribution is equal. This keeps support/healer weapon choice
+	// stable instead of arbitrary/order-dependent once the team already covers a
+	// token both weapons share.
+	function getOwnCoverageBreadth(r, isMemberAnchor, isDpsAnchor) {
+		if (!r) return 0;
+		const coverage = getCoverageMapForItem(r, isMemberAnchor, isDpsAnchor);
+		let sum = 0;
+		coverage.forEach((entry) => {
+			sum += entry.score;
+		});
+		return sum;
+	}
+
 	function getNaturalTargetMatchScore(r, chosenCustom) {
 		return hasNaturalTargetMatch(r, chosenCustom) ? 1 : 0;
+	}
+
+	// DPS second-weapon coverage: the DPS should focus on damage and offensive
+	// utility, not on defensive buffs. Defensive buffs are only a healer/support
+	// concern, so they are heavily de-prioritized here — self-range defensive
+	// buffs are essentially never worth a DPS weapon slot, while AOE defensive
+	// buffs remain a tiny tie-breaker in case nobody else can cover them.
+	function getDpsIncrementalCoverageScoreForItem(
+		r,
+		isMemberAnchor,
+		chosenCustom,
+		localCoverageMap,
+	) {
+		if (!r) return 0;
+		const pick = Object.assign({}, r, { chosenCustom });
+		const coverage = getCoverageMapForItem(pick, isMemberAnchor, true);
+		let score = 0;
+		coverage.forEach((entry, key) => {
+			const prev = localCoverageMap?.get(key);
+			const defFactor = isDefensiveBuffDesired(entry.desired)
+				? dpsDefensiveBuffRangeFactor(entry.cap.range)
+				: 1;
+			const effective = entry.score * defFactor;
+			if (!prev) {
+				score += effective;
+			} else if (entry.score > prev.score) {
+				const prevFactor = isDefensiveBuffDesired(prev.desired)
+					? dpsDefensiveBuffRangeFactor(prev.cap.range)
+					: 1;
+				const prevEffective = prev.score * prevFactor;
+				// Small reward for improving an already-covered token, but much less
+				// than adding a new selected effect.
+				score += Math.max(0, effective - prevEffective) * 0.1;
+			}
+		});
+		return score;
+	}
+
+	// Penalty factor applied to defensive-buff coverage when the DPS is choosing
+	// a weapon. Self-range defensive buffs are worth nothing to a DPS; AOE
+	// defensive buffs are only a faint tie-breaker; other ranges are near-zero.
+	function dpsDefensiveBuffRangeFactor(range) {
+		switch (range || "none") {
+			case "allAllies":
+				return 0.1;
+			case "self":
+				return 0.0;
+			case "allyExcludingSelf":
+			case "singleAlly":
+				return 0.02;
+			default:
+				return 0.0;
+		}
 	}
 
 	function getAnchorWeaponPriorityScore(
@@ -1643,17 +1714,28 @@ export function recommendTeamsGrid(
 			for (let i = 0; i < pool.length; i++) {
 				const itemRaw = pool[i];
 				itemRaw.customOptions.forEach((opt) => {
-					const incrementalCoverage = getIncrementalCoverageScoreForItem(
-						itemRaw,
-						isAnchor,
-						opt,
-						localCoverageMap,
-						isDpsRole,
-					);
+					const incrementalCoverage = isDpsRole
+						? getDpsIncrementalCoverageScoreForItem(
+								itemRaw,
+								isAnchor,
+								opt,
+								localCoverageMap,
+							)
+						: getIncrementalCoverageScoreForItem(
+								itemRaw,
+								isAnchor,
+								opt,
+								localCoverageMap,
+								isDpsRole,
+							);
 
 					let score;
 					if (isDpsRole) {
-						// Second DPS weapon is utility-first; damage is tie-breaker.
+						// Second DPS weapon is utility-first, but the DPS should focus
+						// on damage and offensive utility. Defensive buffs (especially
+						// self-range) are heavily de-prioritized so the DPS does not
+						// waste a slot on party mitigation that the healer/support
+						// should cover instead.
 						score =
 							incrementalCoverage * 1000000 +
 							getAnchorSustainedDamage(itemRaw, opt) +
@@ -1662,17 +1744,24 @@ export function recommendTeamsGrid(
 						// Once the healer role is satisfied, do not eagerly chase DPS.
 						// Prefer buff/debuff coverage, then extra party healing, then nominal healing.
 						// Matching target damage is only a small tie-breaker if it naturally fits.
+						// Coverage breadth breaks ties toward the weapon that covers
+						// more distinct wanted effects.
 						score =
 							incrementalCoverage * 100000000 +
 							getDirectWeaponPartyHealPotency(itemRaw, opt) * 1000 +
 							getDirectWeaponHealPotency(itemRaw, opt) +
-							getNaturalTargetMatchScore(itemRaw, opt);
+							getNaturalTargetMatchScore(itemRaw, opt) +
+							getOwnCoverageBreadth(itemRaw, isAnchor, isDpsRole);
 					} else {
 						// Support is utility-first. Do not treat it as Flex DPS.
+						// Coverage breadth breaks ties toward the weapon that covers
+						// more distinct wanted effects (e.g. Stream Guard over Arc
+						// Sword when MDEF Down is already covered by the team).
 						score =
 							incrementalCoverage * 1000000 +
 							getDisplayedHealScore(itemRaw, opt) * 1000 +
-							getNaturalTargetMatchScore(itemRaw, opt);
+							getNaturalTargetMatchScore(itemRaw, opt) +
+							getOwnCoverageBreadth(itemRaw, isAnchor, isDpsRole);
 					}
 
 					if (score > bestScore) {

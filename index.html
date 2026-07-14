@@ -35,6 +35,10 @@
             </div>
             <div class="mt-3 flex items-center gap-2 border-t border-slate-200 pt-3 text-xs font-bold text-slate-500 dark:border-slate-700 dark:text-slate-300">
               <p id="status" class="min-w-0 flex-1 truncate">Builds update automatically.</p>
+              <button id="copyBuildButton" class="soft-button inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs hidden" disabled title="Copy build JSON (dev only)" aria-label="Copy build JSON">
+                <span class="inline-flex size-4 items-center justify-center text-sm leading-none" aria-hidden="true">⧉</span>
+                <span id="copyBuildLabel">Copy JSON</span>
+              </button>
             </div>
           </section>
 

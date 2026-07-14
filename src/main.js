@@ -824,6 +824,7 @@ async function recompute() {
 			lastResult = null;
 			renderDiagnostics([], {});
 			renderEmpty("Loading bundled data...");
+			updateCopyButton();
 			setStatus("Loading bundled data.");
 			return;
 		}
@@ -841,6 +842,7 @@ async function recompute() {
 			renderEmpty(
 				"Schema validation failed. Fix the sheet columns and the app will recalculate.",
 			);
+			updateCopyButton();
 			setStatus("Schema validation failed.", "error");
 			return;
 		}
@@ -863,6 +865,7 @@ async function recompute() {
 		renderEffectPanels(result);
 		renderResult(result);
 		setSourceMeta(result.source);
+		updateCopyButton();
 		setStatus(buildStatusMessage(result.builds.length), "ok");
 	} catch (error) {
 		if (requestId !== renderRequestId) return;
@@ -870,6 +873,7 @@ async function recompute() {
 		lastResult = payload;
 		renderDiagnostics([error.message], payload);
 		renderEmpty("Unable to load or recommend from this data source.");
+		updateCopyButton();
 		setStatus("Failed.", "error");
 	}
 }
@@ -1413,9 +1417,53 @@ function escapeHtml(value) {
 		.replace(/'/g, "&#039;");
 }
 
+// Dev/local only: expose a "Copy build JSON" button that includes the input
+// parameters. Hidden in production builds.
+const IS_DEV =
+	location.hostname === "localhost" ||
+	location.hostname === "127.0.0.1" ||
+	location.hostname.endsWith(".local") ||
+	import.meta.env?.DEV === true;
+
 function updateReloadButton() {
 	const button = $("reloadButton");
 	if (button) button.disabled = !state.sheetUrl.trim();
+}
+
+function updateCopyButton() {
+	const button = $("copyBuildButton");
+	if (!button) return;
+	if (!IS_DEV) {
+		button.classList.add("hidden");
+		return;
+	}
+	button.classList.remove("hidden");
+	button.disabled = !lastResult || Boolean(lastResult.error);
+}
+
+async function copyBuildJson() {
+	if (!lastResult || lastResult.error) return;
+	const payload = {
+		inputs: {
+			sheetUrl: state.sheetUrl,
+			preset: state.preset,
+			weakArch: state.weakArch,
+			weakElem: state.weakElem,
+			damageAssumption: state.damageAssumption,
+			healerNeeded: state.healerNeeded,
+			selectedEffects: currentEffectDefs()
+				.filter((effect) => state.selectedEffects[effect.id])
+				.map((effect) => effect.token),
+		},
+		result: lastResult,
+	};
+	await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+	const label = $("copyBuildLabel");
+	const old = label.textContent;
+	label.textContent = "Copied";
+	setTimeout(() => {
+		label.textContent = old;
+	}, 1200);
 }
 
 async function reloadData() {
@@ -1458,7 +1506,9 @@ function bindInputs() {
 		$(id).addEventListener("change", handleControlChange);
 	}
 	$("reloadButton").addEventListener("click", reloadData);
+	$("copyBuildButton").addEventListener("click", copyBuildJson);
 	updateReloadButton();
+	updateCopyButton();
 	document.addEventListener("click", (event) => {
 		const button = event.target.closest("[data-effect-toggle]");
 		if (!button) return;

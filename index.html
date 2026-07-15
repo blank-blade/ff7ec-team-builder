@@ -116,17 +116,20 @@
                   <option value="baseOnly">Base only</option>
                 </select>
               </label>
-              <label class="checkbox-card sm:col-span-2 xl:col-span-1 2xl:col-span-2">
-                <input id="healerNeeded" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500" />
-                <span>Healer needed</span>
-              </label>
+              <div id="mainToggles" class="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-1 2xl:col-span-2"></div>
             </div>
           </section>
 
           <section class="panel">
-            <div class="mb-3">
-              <h2 class="panel-title">Offensive targets</h2>
-              <p class="panel-subtitle">Inferred buffs and debuffs. Toggle off for immunities.</p>
+            <div class="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <h2 class="panel-title">Offensive targets</h2>
+                <p class="panel-subtitle">Inferred buffs and debuffs. Toggle off for immunities.</p>
+              </div>
+              <button type="button" id="offensiveAllButton" class="chip-button chip-all hidden" data-offensive-all aria-label="Select all offensive targets">
+                <span class="toggle-box" aria-hidden="true">✓</span>
+                <span>All</span>
+              </button>
             </div>
             <div id="offensiveEffects" class="space-y-4"></div>
           </section>

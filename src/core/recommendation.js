@@ -20,6 +20,8 @@ export function recommendTeamsGrid(
 	damageAssumption,
 	manualCoverageMode,
 	anchorHealThreshold,
+	includeUW,
+	includeGear,
 ) {
 	if (!equipmentsData || equipmentsData.length < 2)
 		return [["No equipment data found"]];
@@ -40,7 +42,6 @@ export function recommendTeamsGrid(
 		"atkUp",
 		"pdefUp",
 		"mdefUp",
-		"defUp",
 		"elemDmgUp",
 		"elemResistUp",
 		"pdefDown",
@@ -115,7 +116,6 @@ export function recommendTeamsGrid(
 	const DEFENSIVE_BUFF_TYPES = new Set([
 		"pdefUp",
 		"mdefUp",
-		"defUp",
 		"elemResistUp",
 		"physResistUp",
 		"magResistUp",
@@ -260,7 +260,6 @@ export function recommendTeamsGrid(
 			atkUp: "ATK Up",
 			pdefUp: "PDEF Up",
 			mdefUp: "MDEF Up",
-			defUp: "DEF Up",
 			patkDown: "PATK Down",
 			matkDown: "MATK Down",
 			atkDown: "ATK Down",
@@ -301,7 +300,6 @@ export function recommendTeamsGrid(
 				e && e !== "none"
 					? `${elemLabel(e)} Dmg. Rcvd. Up`
 					: "Elem. Dmg. Rcvd. Up",
-			dmgRcvdUp: "Dmg. Rcvd. Up",
 			hpGain: "HP Gain",
 			regen: "Regen",
 			barrier: "Barrier",
@@ -423,6 +421,12 @@ export function recommendTeamsGrid(
 			1,
 			Number(anchorHealThreshold) || DEFAULT_ANCHOR_HEAL_THRESHOLD,
 		),
+		// Ultimate Weapons and Gear are opt-in toggles that default ON to match the
+		// prior behavior. When OFF, their pools are skipped entirely during loadout
+		// assembly. When ON, they are still only kept in a build when they add an
+		// active contribution (coverage or heal); otherwise the build is simplified.
+		includeUW: includeUW === undefined ? true : parseBool(includeUW),
+		includeGear: includeGear === undefined ? true : parseBool(includeGear),
 	};
 
 	function inferPyramidLayer(kind, type) {
@@ -1258,20 +1262,38 @@ export function recommendTeamsGrid(
 			const defFactor = isDefensiveBuffDesired(entry.desired)
 				? dpsDefensiveBuffRangeFactor(entry.cap.range)
 				: 1;
-			const effective = entry.score * defFactor;
+			// Enfeeble and Amp are support/heal-domain effects that other team
+			// members (support, healer) normally carry. The DPS should not grab
+			// them on its 2nd weapon at the expense of a sustained damage booster
+			// (e.g. PATK Up / Physical Damage Bonus), which would both waste the
+			// DPS slot and make a support/healer's coverage (and UW) redundant.
+			const supportDomainFactor = dpsSupportDomainFactor(entry.desired);
+			const effective = entry.score * defFactor * supportDomainFactor;
 			if (!prev) {
 				score += effective;
 			} else if (entry.score > prev.score) {
 				const prevFactor = isDefensiveBuffDesired(prev.desired)
 					? dpsDefensiveBuffRangeFactor(prev.cap.range)
 					: 1;
-				const prevEffective = prev.score * prevFactor;
+				const prevSupportFactor = dpsSupportDomainFactor(prev.desired);
+				const prevEffective = prev.score * prevFactor * prevSupportFactor;
 				// Small reward for improving an already-covered token, but much less
 				// than adding a new selected effect.
 				score += Math.max(0, effective - prevEffective) * 0.1;
 			}
 		});
 		return score;
+	}
+
+	// Penalty factor applied to support/heal-domain coverage (Enfeeble, Amp) when
+	// the DPS is choosing its 2nd weapon. These effects are normally carried by
+	// the support or healer, so the DPS should strongly prefer sustained damage
+	// boosters over grabbing them itself.
+	function dpsSupportDomainFactor(desired) {
+		if (!desired) return 1;
+		if (desired.type === "enfeeble") return 0.15;
+		if (desired.kind === "amp") return 0.15;
+		return 1;
 	}
 
 	// Penalty factor applied to defensive-buff coverage when the DPS is choosing
@@ -1782,7 +1804,7 @@ export function recommendTeamsGrid(
 			if (!pick) break;
 		}
 
-		const uwPool = [...charData.ultimates];
+		const uwPool = target.includeUW ? [...charData.ultimates] : [];
 		let uwPick = null;
 		if (uwPool.length > 0) {
 			let bestIdx = -1,
@@ -1808,18 +1830,33 @@ export function recommendTeamsGrid(
 					}
 				});
 			}
+			// Only keep the UW when it actively contributes (coverage or heal).
+			// Otherwise simplify the build by omitting it.
 			if (bestIdx > -1) {
-				uwPick = Object.assign({}, uwPool[bestIdx], {
+				const candidate = Object.assign({}, uwPool[bestIdx], {
 					chosenCustom: bestCustom,
 				});
-				getCoverageMapForItem(uwPick, isAnchor, isDpsAnchor).forEach((v, k) => {
-					const prev = localCoverageMap.get(k);
-					if (!prev || v.score > prev.score) localCoverageMap.set(k, v);
-				});
+				const candidateCoverage = getIncrementalCoverageScoreForItem(
+					candidate,
+					isAnchor,
+					bestCustom,
+					localCoverageMap,
+					isDpsAnchor,
+				);
+				const candidateHeal = getDisplayedHealScore(candidate, bestCustom);
+				if (candidateCoverage > 0 || candidateHeal > 0) {
+					uwPick = candidate;
+					getCoverageMapForItem(uwPick, isAnchor, isDpsAnchor).forEach(
+						(v, k) => {
+							const prev = localCoverageMap.get(k);
+							if (!prev || v.score > prev.score) localCoverageMap.set(k, v);
+						},
+					);
+				}
 			}
 		}
 
-		const gearPool = [...charData.gear];
+		const gearPool = target.includeGear ? [...charData.gear] : [];
 		let gearPick = null;
 		if (gearPool.length > 0) {
 			let bestIdx = -1,
@@ -1847,16 +1884,29 @@ export function recommendTeamsGrid(
 					}
 				});
 			}
+			// Only keep the Gear when it actively contributes (coverage or heal).
+			// Otherwise simplify the build by omitting it.
 			if (bestIdx > -1) {
-				gearPick = Object.assign({}, gearPool[bestIdx], {
+				const candidate = Object.assign({}, gearPool[bestIdx], {
 					chosenCustom: bestCustom,
 				});
-				getCoverageMapForItem(gearPick, isAnchor, isDpsAnchor).forEach(
-					(v, k) => {
-						const prev = localCoverageMap.get(k);
-						if (!prev || v.score > prev.score) localCoverageMap.set(k, v);
-					},
+				const candidateCoverage = getIncrementalCoverageScoreForItem(
+					candidate,
+					isAnchor,
+					bestCustom,
+					localCoverageMap,
+					isDpsAnchor,
 				);
+				const candidateHeal = getDisplayedHealScore(candidate, bestCustom);
+				if (candidateCoverage > 0 || candidateHeal > 0) {
+					gearPick = candidate;
+					getCoverageMapForItem(gearPick, isAnchor, isDpsAnchor).forEach(
+						(v, k) => {
+							const prev = localCoverageMap.get(k);
+							if (!prev || v.score > prev.score) localCoverageMap.set(k, v);
+						},
+					);
+				}
 			}
 		}
 
@@ -2836,6 +2886,8 @@ export function recommendTeamsJson(equipmentsData, options = {}) {
 		options.damageAssumption || "conservative",
 		options.manualCoverageMode !== false,
 		options.anchorHealThreshold || 47,
+		options.includeUW === undefined ? true : options.includeUW,
+		options.includeGear === undefined ? true : options.includeGear,
 	);
 	return gridToBuildJson(grid);
 }

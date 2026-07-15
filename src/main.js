@@ -191,6 +191,8 @@ const state = {
 	weakElem: "",
 	damageAssumption: "conservative",
 	healerNeeded: false,
+	includeUW: true,
+	includeGear: true,
 	selectedEffects: {},
 	themeMode: "system",
 };
@@ -226,7 +228,7 @@ function loadSavedState() {
 	for (const id of CONTROL_IDS) {
 		if ($(id) && state[id] !== undefined) $(id).value = state[id];
 	}
-	$("healerNeeded").checked = Boolean(state.healerNeeded);
+	renderMainToggles();
 	applyTheme();
 }
 
@@ -238,14 +240,16 @@ function readControlsIntoState() {
 	for (const id of CONTROL_IDS) {
 		state[id] = $(id).value;
 	}
-	state.healerNeeded = $("healerNeeded").checked;
+	// The three option toggles are rendered as buttons (see renderMainToggles),
+	// so their state is already tracked in `state` and does not need re-reading
+	// from the DOM here.
 }
 
 function writeStateToControls() {
 	for (const id of CONTROL_IDS) {
 		if ($(id)) $(id).value = state[id] || (id === "themeMode" ? "system" : "");
 	}
-	$("healerNeeded").checked = Boolean(state.healerNeeded);
+	renderMainToggles();
 	applyTheme();
 }
 
@@ -516,18 +520,6 @@ function buildEffectDefs(weakArch, weakElem) {
 			);
 		defs.push(
 			makeEffect({
-				id: "off-debuff-dmg-rcvd",
-				kind: EFFECT_KIND.DEBUFF,
-				domain: EFFECT_DOMAIN.OFFENSE,
-				group: "Layer 3 · Damage received",
-				label: "Dmg. Rcvd. Up",
-				token: "dmgRcvdUp",
-				defaultOn: false,
-				layer: 3,
-			}),
-		);
-		defs.push(
-			makeEffect({
 				id: "off-debuff-torpor",
 				kind: EFFECT_KIND.DEBUFF,
 				domain: EFFECT_DOMAIN.OFFENSE,
@@ -571,17 +563,6 @@ function buildEffectDefs(weakArch, weakElem) {
 			group: "Defensive buffs · Defense",
 			label: "MDEF Up",
 			token: "mdefUp",
-			defaultOn: false,
-		}),
-	);
-	defs.push(
-		makeEffect({
-			id: "def-buff-def-up",
-			kind: EFFECT_KIND.BUFF,
-			domain: EFFECT_DOMAIN.DEFENSE,
-			group: "Defensive buffs · Defense",
-			label: "DEF Up",
-			token: "defUp",
 			defaultOn: false,
 		}),
 	);
@@ -695,6 +676,8 @@ function effectOptionsForRecommendation() {
 		wantDebuffs: selectedEffectTokens(EFFECT_KIND.DEBUFF).join(", "),
 		healerNeeded: state.healerNeeded,
 		damageAssumption: state.damageAssumption,
+		includeUW: state.includeUW,
+		includeGear: state.includeGear,
 	};
 }
 
@@ -712,12 +695,34 @@ function renderEffectPanels(result = null) {
 		EFFECT_DOMAIN.DEFENSE,
 		covered,
 	);
+	updateOffensiveAllButton(defs);
+}
+
+// The "All" button appears only when at least one offensive target is toggled
+// off. Clicking it selects every offensive target. It is hidden once all are on.
+function updateOffensiveAllButton(defs) {
+	const button = $("offensiveAllButton");
+	if (!button) return;
+	const offensive = defs.filter(
+		(effect) => effect.domain === EFFECT_DOMAIN.OFFENSE,
+	);
+	if (!offensive.length) {
+		button.classList.add("hidden");
+		return;
+	}
+	const allOn = offensive.every((effect) => state.selectedEffects[effect.id]);
+	button.classList.toggle("hidden", allOn);
 }
 
 function renderEffectDomain(defs, domain, covered) {
 	const domainDefs = defs.filter((effect) => effect.domain === domain);
 	if (!domainDefs.length)
 		return '<p class="text-sm text-slate-500">Choose an archetype or element to infer applicable effects.</p>';
+	// Offensive targets are ordered strictly by pyramid layer ascending so the
+	// groups read base → amplify → damage received → bonus → weapon → apex.
+	if (domain === EFFECT_DOMAIN.OFFENSE) {
+		domainDefs.sort((a, b) => (a.layer ?? 99) - (b.layer ?? 99));
+	}
 	const groups = groupBy(domainDefs, (effect) => effect.group);
 	return Object.entries(groups)
 		.map(
@@ -755,6 +760,30 @@ function renderToggleChip(effect, isCovered) {
       ${isCovered ? '<span class="sr-only">covered</span>' : ""}
     </button>
   `;
+}
+
+// The three top-level option toggles (Healer / UW / Gear) reuse the same
+// chip-button styling as the offensive/defensive effect toggles below, but stay
+// neutral in colour. They are rendered as buttons (not checkboxes) so toggling
+// them behaves identically to the effect chips and immediately triggers recompute.
+const MAIN_TOGGLES = [
+	{ id: "healerNeeded", label: "Healer" },
+	{ id: "includeUW", label: "UW" },
+	{ id: "includeGear", label: "Gear" },
+];
+
+function renderMainToggles() {
+	const node = $("mainToggles");
+	if (!node) return;
+	node.innerHTML = MAIN_TOGGLES.map((t) => {
+		const selected = Boolean(state[t.id]);
+		return `
+    <button type="button" class="chip-button ${selected ? "chip-neutral-active" : "chip-neutral"}" data-main-toggle="${escapeHtml(t.id)}" aria-pressed="${selected}">
+      <span class="toggle-box" aria-hidden="true">${selected ? "✓" : ""}</span>
+      <span>${escapeHtml(t.label)}</span>
+    </button>
+  `;
+	}).join("");
 }
 
 function coveredEffectIds(result) {
@@ -1374,21 +1403,26 @@ function parseCsvList(text) {
 }
 
 function normalizeEffectLabel(value) {
-	return String(value || "")
-		.toLowerCase()
-		.replace(/^(buff|debuff|amp):\s*/g, "")
-		.replace(/>=?t\d+/g, "")
-		.replace(/\[.*?\]/g, "")
-		.replace(/\b(t\d|low|mid|high|xhigh|extra high)\b/g, "")
-		.replace(/\bpotency\b/g, "pot")
-		.replace(/\bresist(?:ance)?\b/g, "resist")
-		.replace(/\bdamage\b/g, "dmg")
-		.replace(/\bphysical\b/g, "phys")
-		.replace(/\bmagic(?:al)?\b/g, "mag")
-		.replace(/\bsingle\s+tgt\b/g, "single target")
-		.replace(/\ball\s+tgt\b/g, "all target")
-		.replace(/[^a-z0-9]+/g, " ")
-		.trim();
+	return (
+		String(value || "")
+			.toLowerCase()
+			.replace(/^(buff|debuff|amp):\s*/g, "")
+			.replace(/>=?t\d+/g, "")
+			.replace(/\[.*?\]/g, "")
+			.replace(/\b(t\d|low|mid|high|xhigh|extra high)\b/g, "")
+			.replace(/\bpotency\b/g, "pot")
+			.replace(/\bresist(?:ance)?\b/g, "resist")
+			.replace(/\bdamage\b/g, "dmg")
+			.replace(/\bphysical\b/g, "phys")
+			.replace(/\bmagic(?:al)?\b/g, "mag")
+			// Range prefixes (Single-Tgt. / All-Tgt.) are embedded in some coverage
+			// display labels but NOT in the canonical effect labels. Strip them so the
+			// two normalize identically and coverage chips match their effect defs.
+			.replace(/\bsingle[-\s]tgt\b/g, "")
+			.replace(/\ball[-\s]tgt\b/g, "")
+			.replace(/[^a-z0-9]+/g, " ")
+			.trim()
+	);
 }
 
 function looksDebuff(text) {
@@ -1485,9 +1519,14 @@ function handleControlChange(event) {
 		if (preset) applyPreset(preset);
 		writeStateToControls();
 	} else if (
-		["weakArch", "weakElem", "damageAssumption", "healerNeeded"].includes(
-			targetId,
-		)
+		[
+			"weakArch",
+			"weakElem",
+			"damageAssumption",
+			"healerNeeded",
+			"includeUW",
+			"includeGear",
+		].includes(targetId)
 	) {
 		state.preset = "custom";
 		$("preset").value = "custom";
@@ -1497,11 +1536,12 @@ function handleControlChange(event) {
 	const nextSource = sourceKey();
 	updateReloadButton();
 	renderEffectPanels(lastResult);
+	renderMainToggles();
 	scheduleRecalculate({ reloadData: previousSource !== nextSource });
 }
 
 function bindInputs() {
-	for (const id of [...CONTROL_IDS, "healerNeeded"]) {
+	for (const id of CONTROL_IDS) {
 		$(id).addEventListener("input", handleControlChange);
 		$(id).addEventListener("change", handleControlChange);
 	}
@@ -1510,15 +1550,39 @@ function bindInputs() {
 	updateReloadButton();
 	updateCopyButton();
 	document.addEventListener("click", (event) => {
-		const button = event.target.closest("[data-effect-toggle]");
-		if (!button) return;
-		const id = button.dataset.effectToggle;
-		state.preset = "custom";
-		$("preset").value = "custom";
-		state.selectedEffects[id] = !state.selectedEffects[id];
-		persistState();
-		renderEffectPanels(lastResult);
-		scheduleRecalculate();
+		const effectButton = event.target.closest("[data-effect-toggle]");
+		if (effectButton) {
+			const id = effectButton.dataset.effectToggle;
+			state.preset = "custom";
+			$("preset").value = "custom";
+			state.selectedEffects[id] = !state.selectedEffects[id];
+			persistState();
+			renderEffectPanels(lastResult);
+			scheduleRecalculate();
+			return;
+		}
+		const mainButton = event.target.closest("[data-main-toggle]");
+		if (mainButton) {
+			const id = mainButton.dataset.mainToggle;
+			state.preset = "custom";
+			$("preset").value = "custom";
+			state[id] = !state[id];
+			persistState();
+			renderMainToggles();
+			scheduleRecalculate();
+		}
+		const allButton = event.target.closest("[data-offensive-all]");
+		if (allButton) {
+			state.preset = "custom";
+			$("preset").value = "custom";
+			for (const effect of currentEffectDefs()) {
+				if (effect.domain === EFFECT_DOMAIN.OFFENSE)
+					state.selectedEffects[effect.id] = true;
+			}
+			persistState();
+			renderEffectPanels(lastResult);
+			scheduleRecalculate();
+		}
 	});
 }
 
@@ -1567,6 +1631,7 @@ function applyPreset(preset) {
 	state.damageAssumption =
 		preset.damageAssumption || state.damageAssumption || "conservative";
 	state.healerNeeded = Boolean(preset.healerNeeded);
+	// Presets do not currently set UW/Gear, so leave those toggles untouched.
 	const explicitTokens = [
 		...parseCsvList(preset.wantBuffs),
 		...parseCsvList(preset.wantDebuffs),

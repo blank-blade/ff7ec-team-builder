@@ -62,12 +62,26 @@
 	.chip-debuff-active {
 		@apply border-rose-500 bg-rose-600 text-white shadow-sm shadow-rose-100 hover:bg-rose-700 dark:border-rose-300 dark:bg-rose-600 dark:text-white dark:shadow-none;
 	}
+	/* Neutral option toggles (Healer / UW / Gear) reuse the chip shape but stay
+	   colour-neutral to match the buff/debuff toggle styling without implying a
+	   buff/debuff domain. */
+	.chip-neutral {
+		@apply border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 focus:ring-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700;
+	}
+	.chip-neutral-active {
+		@apply border-slate-500 bg-slate-600 text-white shadow-sm shadow-slate-100 hover:bg-slate-700 dark:border-slate-400 dark:bg-slate-600 dark:text-white dark:shadow-none;
+	}
 	/* Provoke is a special defensive buff: distinguished amber ring/colour. */
 	.chip-special {
 		@apply border-amber-300 bg-amber-50 text-amber-800 ring-2 ring-amber-200 hover:bg-amber-100 focus:ring-amber-100 dark:border-amber-500 dark:bg-amber-950/50 dark:text-amber-200 dark:ring-amber-700/60;
 	}
 	.chip-special-active {
 		@apply border-amber-500 bg-amber-500 text-white shadow-sm shadow-amber-100 ring-2 ring-amber-300 hover:bg-amber-600 dark:border-amber-300 dark:bg-amber-500 dark:text-white dark:ring-amber-400/70 dark:shadow-none;
+	}
+	/* "All" button for the offensive targets section: neutral, harmonic with the
+	   chip toggles, aligned to the top-right of the section header. */
+	.chip-all {
+		@apply border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100 focus:ring-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700;
 	}
 	.effect-chip {
 		@apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-black transition;

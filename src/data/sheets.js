@@ -164,6 +164,28 @@ export function validatePresetGrid(rows) {
 		warnings.push(
 			`Ignoring unknown preset column(s): ${Array.from(new Set(unknown)).join(", ")}`,
 		);
+	const forbiddenEffects = new Set(["atkUp", "defDown", "atkDown"]);
+	const effectColumns = [
+		"want_buffs",
+		"want_debuffs",
+		"defensive_buffs",
+		"defensive_debuffs",
+	];
+	for (const column of effectColumns) {
+		const columnIndex = normalized.indexOf(column);
+		if (columnIndex < 0) continue;
+		for (const [rowIndex, row] of rows.slice(1).entries()) {
+			const invalid = String(row[columnIndex] || "")
+				.split(",")
+				.map((token) => token.trim().split(":", 1)[0])
+				.filter((token) => forbiddenEffects.has(token));
+			if (invalid.length) {
+				warnings.push(
+					`Preset row ${rowIndex + 2} uses unsupported generic effect(s): ${invalid.join(", ")}. Use PATK/MATK or PDEF/MDEF effects explicitly.`,
+				);
+			}
+		}
+	}
 	return {
 		ok: warnings.filter((w) => !w.startsWith("Ignoring unknown")).length === 0,
 		warnings,

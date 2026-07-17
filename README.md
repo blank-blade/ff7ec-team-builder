@@ -46,6 +46,7 @@ id	name	group	weak_arch	weak_elem	damage_assumption	healer_needed	want_buffs	wan
 - `id` and `name` are required.
 - `weak_arch` accepts `phys`, `mag`, or `hybrid`.
 - `weak_elem` accepts `fire`, `ice`, `lightning`, `wind`, `water`, `earth`, or `nonelem`.
-- Effect columns use the same internal tokens as the UI/recommendation layer, for example `patkUp`, `pdefDown`, `elemDmgUp:water`, or `elemResistUp:lightning`.
+- Effect columns use the same internal tokens as the UI/recommendation layer, for example `patkUp`, `pdefDown`, `singleTgtPhysDmgRcvdUp`, `elemDmgUp:water`, or `elemResistUp:lightning`.
+- Use `patkDown` and/or `matkDown` explicitly. FF7EC has no generic `atkDown` status.
 - Presets loaded from the bundled sample or from a Google Sheet appear under `Extended presets` in the Quick preset selector.
 - Any manual change to enemy inputs or effect chips switches the selector back to `Custom`.

@@ -1,3 +1,24 @@
+import {
+	archLabel,
+	canonicalizeTypeAndElem,
+	cleanText,
+	DEFENSIVE_BUFF_TYPES,
+	ELEMENTAL_TYPES,
+	effectDisplayName,
+	elemLabel,
+	inferPyramidLayer,
+	MATERIA_TIERED_TYPES,
+	normalizeTier,
+	RANGE_LABEL,
+	SELF_OK_TYPES,
+	splitCondition,
+	TIER_LABEL,
+	TIERED_TYPES,
+	tierDisplay,
+	whenDisplay,
+} from "./effect-model.js";
+import { resolveEquipmentRows } from "./equipment-parser.js";
+
 /**
  * Context-Prioritized Custom Google Sheets Function to calculate optimal FF7EC teams.
  *
@@ -28,407 +49,34 @@ export function recommendTeamsGrid(
 	if (!equipmentsData || equipmentsData.length < 2)
 		return [["No equipment data found"]];
 
-	const TIER_VALUE = {
-		low: 1,
-		mid: 2,
-		moderate: 2,
-		high: 3,
-		xhigh: 4,
-		extrahigh: 4,
-		extraHigh: 4,
-	};
-	const TIER_LABEL = { 1: "T1", 2: "T2", 3: "T3", 4: "T4" };
-	const TIERED_TYPES = new Set([
-		"patkUp",
-		"matkUp",
-		"atkUp",
-		"pdefUp",
-		"mdefUp",
-		"elemDmgUp",
-		"elemResistUp",
-		"pdefDown",
-		"mdefDown",
-		"defDown",
-		"patkDown",
-		"matkDown",
-		"atkDown",
-		"elemResistDown",
-		"elemDmgDown",
-	]);
-	// Materia B/D can only amplify a narrow, valid set of stat buffs/debuffs.
-	// Element potency up/down and generic atk/def are excluded because materia
-	// slots cannot carry those effects; only the listed stat shifts and element
-	// resist down are valid materia B/D targets.
-	const MATERIA_TIERED_TYPES = new Set([
-		"patkUp",
-		"matkUp",
-		"pdefUp",
-		"mdefUp",
-		"patkDown",
-		"matkDown",
-		"pdefDown",
-		"mdefDown",
-		"elemResistDown",
-	]);
-	const _ELEMENTS = new Set([
-		"fire",
-		"ice",
-		"lightning",
-		"wind",
-		"water",
-		"earth",
-		"nonelem",
-	]);
-	const ELEMENTAL_TYPES = new Set([
-		"elemDmgUp",
-		"elemDmgDown",
-		"elemResistUp",
-		"elemResistDown",
-		"elemDmgBonus",
-		"elemWeaponBoost",
-		"elemDmgRcvdUp",
-		"elemMastery",
-		"elemInterruptUp",
-		"elemAtbConservation",
-		"elemWeakness",
-		"ampElemAbilities",
-	]);
-	const SELF_OK_TYPES = new Set([
-		"removePoison",
-		"removeSilence",
-		"removeBlind",
-		"removeSleep",
-		"removeParalyze",
-		"removeStun",
-		"removeSlow",
-		"removeStop",
-		"removePatkDown",
-		"removeMatkDown",
-		// Provoke is always self-range; it is the Tank's personal defensive role and
-		// should always satisfy the desired coverage regardless of anchor status.
-		"provoke",
-	]);
-	const _OFFENSIVE_BUFF_TYPES = new Set([
-		"patkUp",
-		"matkUp",
-		"atkUp",
-		"elemDmgUp",
-		"enliven",
-		"haste",
-		"exploitWeakness",
-		"physDmgBonus",
-		"magDmgBonus",
-		"elemDmgBonus",
-		"physWeaponBoost",
-		"magWeaponBoost",
-		"elemWeaponBoost",
-		"elemMastery",
-		"physAtbConservation",
-		"magAtbConservation",
-		"elemAtbConservation",
-		"ampElemAbilities",
-		"ampPhysAbilities",
-		"ampMagAbilities",
-	]);
-	const DEFENSIVE_BUFF_TYPES = new Set([
-		"pdefUp",
-		"mdefUp",
-		"elemResistUp",
-		"physResistUp",
-		"magResistUp",
-		"barrier",
-		"regen",
-		"veil",
-		"provoke",
-		"hpGain",
-		"removePoison",
-		"removeSilence",
-		"removeBlind",
-		"removeSleep",
-		"removeParalyze",
-		"removeStun",
-		"removeSlow",
-		"removeStop",
-		"removePatkDown",
-		"removeMatkDown",
-		"removePdefDown",
-		"removeMdefDown",
-	]);
-	const ELEMENT_LABEL = {
-		fire: "Fire",
-		ice: "Ice",
-		lightning: "Lightning",
-		wind: "Wind",
-		water: "Water",
-		earth: "Earth",
-		nonelem: "Non-elem",
-	};
-	const ARCH_LABEL = {
-		phys: "Phys.",
-		mag: "Mag.",
-		hybrid: "Phys./Mag.",
-		any: "Any",
-	};
-	const RANGE_LABEL = {
-		self: "Self",
-		allAllies: "All Allies",
-		allEnemies: "All Enemies",
-		singleEnemy: "Single Enemy",
-		singleAlly: "Single Ally",
-		allyExcludingSelf: "Ally Except Self",
-	};
-	const CONDITION_LABEL = {
-		firstUse: "First Use",
-		selfHpGe50: "Self HP >=50%",
-		selfHpGe70: "Self HP >=70%",
-		selfHpLt50: "Self HP <50%",
-		selfHpLe30: "Self HP <=30%",
-		selfHpLe90: "Self HP <=90%",
-		selfHpEq100: "Self HP =100%",
-		overspeedOff: "Overspeed Off",
-		overspeedOn: "Overspeed On",
-		hitWeakness: "Hit Weakness",
-		selfHasBuff: "Self Has Buff",
-		targetHasDebuff: "Target Has Debuff",
-		matchingSigil: "Matching Sigil",
-		singleTarget: "Single Target",
-		onCritical: "Critical Hit",
-		stanceGaugeMax: "Stance Gauge Max",
-	};
 	const MAX_DISPLAY_BUILDS = 10;
 	const DEFAULT_TIERED_MIN_TIER = 3;
 	const HIGH_TIER_THRESHOLD = 3;
-	const _NEAR_OPTIMAL_OBJECTIVE_RATIO = 0.96;
 	const DEFAULT_ANCHOR_HEAL_THRESHOLD = 47;
-	// Cura materia is 100%; All (Cure Spells) I applies -40%, so an All Cure
-	// support slot is treated as inferred 60% AOE healing for display/scoring.
 	const ALL_CURE_INFERRED_HEAL_POTENCY = 60;
-	// Gear Command Abilities and Ultimate Weapon U.C. Abilities are limited-use actions.
-	// They can still satisfy coverage, but active buff/debuff/amp utility should rank below sustained weapon coverage.
 	const LIMITED_USE_ACTIVE_UTILITY_COVERAGE_FACTOR = 0.55;
 	const MATERIA_ACTIVE_UTILITY_COVERAGE_FACTOR = 0.72;
 	const TOTAL_MATERIA_SLOTS = 3;
 	const exclusiveGroups = [["Sephiroth", "Seph OG"]];
 
-	function cleanText(v) {
-		return v === null || v === undefined ? "" : v.toString().trim();
-	}
-
-	function normalizeTier(v, fallback) {
-		if (v === null || v === undefined || v === "") return fallback || 0;
-		const s = v.toString().trim();
-		const numeric = Number(s);
-		if (!Number.isNaN(numeric) && numeric > 0) return numeric;
-		return TIER_VALUE[s] || TIER_VALUE[s.toLowerCase()] || fallback || 0;
-	}
-
-	function parseBool(v) {
-		if (v === true) return true;
-		const s = cleanText(v).toLowerCase();
+	function parseBool(value) {
+		if (value === true) return true;
 		return ["true", "yes", "y", "1", "needed", "need", "healer", "on"].includes(
-			s,
+			cleanText(value).toLowerCase(),
 		);
 	}
 
-	function normalizeDamageAssumption(v) {
-		const s = cleanText(v).toLowerCase().replace(/\s+/g, "");
-		if (["optimistic", "opt", "best", "bestcase", "best-case"].includes(s))
+	function normalizeDamageAssumption(value) {
+		const normalized = cleanText(value).toLowerCase().replace(/\s+/g, "");
+		if (
+			["optimistic", "opt", "best", "bestcase", "best-case"].includes(
+				normalized,
+			)
+		)
 			return "optimistic";
-		if (["baseonly", "base", "off", "none", "false", "0"].includes(s))
+		if (["baseonly", "base", "off", "none", "false", "0"].includes(normalized))
 			return "baseOnly";
 		return "conservative";
-	}
-
-	function splitCondition(when) {
-		return cleanText(when)
-			.split("&")
-			.map((w) => w.trim())
-			.filter(Boolean);
-	}
-
-	function elemLabel(elem) {
-		const e = cleanText(elem).toLowerCase();
-		return (
-			ELEMENT_LABEL[e] || (e ? e.charAt(0).toUpperCase() + e.slice(1) : "")
-		);
-	}
-
-	function archLabel(arch) {
-		const a = cleanText(arch).toLowerCase();
-		return (
-			ARCH_LABEL[a] || (a ? a.charAt(0).toUpperCase() + a.slice(1) : "Any")
-		);
-	}
-
-	function tierDisplay(tier) {
-		const t = normalizeTier(tier, 0);
-		return t ? `${TIER_LABEL[t] || `T${t}`}` : "";
-	}
-
-	function effectDisplayName(kind, type, elem, status, target) {
-		const t = cleanText(type || status || target);
-		const e = cleanText(elem).toLowerCase();
-		if (kind === "set" && t === "allCure") return "All Cure Materia Support";
-		if (kind === "set" && t === "allEsuna") return "All Esuna Support";
-		if (kind === "amp" && t === "buff") return "Amp. Buffs";
-		if (kind === "amp" && t === "debuff") return "Amp. Debuffs";
-		if (status) return status.charAt(0).toUpperCase() + status.slice(1);
-		const map = {
-			patkUp: "PATK Up",
-			matkUp: "MATK Up",
-			atkUp: "ATK Up",
-			pdefUp: "PDEF Up",
-			mdefUp: "MDEF Up",
-			patkDown: "PATK Down",
-			matkDown: "MATK Down",
-			atkDown: "ATK Down",
-			pdefDown: "PDEF Down",
-			mdefDown: "MDEF Down",
-			defDown: "DEF Down",
-			elemDmgUp:
-				e && e !== "none" ? `${elemLabel(e)} Pot. Up` : "Elem. Pot. Up",
-			elemDmgDown:
-				e && e !== "none" ? `${elemLabel(e)} Pot. Down` : "Elem. Pot. Down",
-			elemResistUp:
-				e && e !== "none" ? `${elemLabel(e)} Resist. Up` : "Elem. Resist. Up",
-			elemResistDown:
-				e && e !== "none"
-					? `${elemLabel(e)} Resist. Down`
-					: "Elem. Resist. Down",
-			physResistUp: "Phys. Resist. Up",
-			magResistUp: "Mag. Resist. Up",
-			haste: "Haste",
-			enliven: "Enliven",
-			enfeeble: "Enfeeble",
-			exploitWeakness: "Exploit Weakness",
-			physDmgBonus: "Physical Damage Bonus",
-			magDmgBonus: "Magic Damage Bonus",
-			elemDmgBonus:
-				e && e !== "none"
-					? `${elemLabel(e)} Damage Bonus`
-					: "Elemental Damage Bonus",
-			physWeaponBoost: "Physical Weapon Boost",
-			magWeaponBoost: "Magic Weapon Boost",
-			elemWeaponBoost:
-				e && e !== "none"
-					? `${elemLabel(e)} Weapon Boost`
-					: "Elemental Weapon Boost",
-			physDmgRcvdUp: "Single-Tgt. Phys. Dmg. Rcvd. Up",
-			magDmgRcvdUp: "Single-Tgt. Mag. Dmg. Rcvd. Up",
-			elemDmgRcvdUp:
-				e && e !== "none"
-					? `${elemLabel(e)} Dmg. Rcvd. Up`
-					: "Elem. Dmg. Rcvd. Up",
-			hpGain: "HP Gain",
-			regen: "Regen",
-			barrier: "Barrier",
-			provoke: "Provoke",
-			veil: "Veil",
-			quintInterrupt: "Quintessential Interruption",
-			overspeed: "Overspeed Gauge",
-			limit: "Limit Gauge",
-			atb: "ATB Gauge",
-			atbGift: "ATB Gauge",
-			gearUses: "Gear C. Ability Uses",
-			command: "Command Fill Gauge",
-			removePoison: "Remove Poison",
-			removeSilence: "Remove Silence",
-			removeBlind: "Remove Blind",
-			removeSleep: "Remove Sleep",
-			removeParalyze: "Remove Paralyze",
-			removeStun: "Remove Stun",
-			removeSlow: "Remove Slow",
-			removeStop: "Remove Stop",
-			removePatkDown: "Remove PATK Down",
-			removeMatkDown: "Remove MATK Down",
-			removePdefDown: "Remove PDEF Down",
-			removeMdefDown: "Remove MDEF Down",
-			removeMdefUp: "Remove MDEF Up",
-			pdefBoost: "Boost PDEF",
-			mdefBoost: "Boost MDEF",
-			healingBoost: "Boost HEAL",
-			elemMastery:
-				e && e !== "none" ? `${elemLabel(e)} Mastery` : "Elemental Mastery",
-			physAtbConservation: "Phys. ATB Conservation",
-			magAtbConservation: "Mag. ATB Conservation",
-			elemAtbConservation:
-				e && e !== "none"
-					? `${elemLabel(e)} ATB Conservation`
-					: "Elemental ATB Conservation",
-			physInterruptUp: "Phys. Interrupt Up",
-			magicInterruptUp: "Mag. Interrupt Up",
-			elemInterruptUp:
-				e && e !== "none"
-					? `${elemLabel(e)} Interrupt Up`
-					: "Elemental Interrupt Up",
-			ampHealing: "Amp. Healing",
-			ampElemAbilities:
-				e && e !== "none"
-					? `Amp. ${elemLabel(e)} Abilities`
-					: "Amp. Elemental Abilities",
-			elemWeakness:
-				e && e !== "none" ? `${elemLabel(e)} Weakness` : "Elemental Weakness",
-		};
-		if (map[t]) return map[t];
-		return t || kind;
-	}
-
-	function whenDisplay(when) {
-		if (!when) return "";
-		return when
-			.split("&")
-			.map((w) => {
-				if (w.startsWith("custom:"))
-					return `${w.slice(7).charAt(0).toUpperCase() + w.slice(8)} Custom`;
-				if (w.startsWith("status:")) return `Status: ${w.slice(7)}`;
-				return CONDITION_LABEL[w] || w;
-			})
-			.join(" + ");
-	}
-
-	function canonicalizeTypeAndElem(type, elem) {
-		const t = cleanText(type);
-		const e = cleanText(elem).toLowerCase() || "none";
-		if (!t) return { type: t, elem: e };
-
-		const lower = t.toLowerCase();
-		const elementPrefix = lower.match(
-			/^(fire|ice|lightning|wind|water|earth)(dmgup|dmgdown|resistup|resistdown|dmgbonus|weaponboost|dmgrcvdup|mastery|interruptup|atbconservation|weakness|abilities)$/,
-		);
-		if (elementPrefix) {
-			const element = elementPrefix[1];
-			const suffix = elementPrefix[2];
-			const suffixMap = {
-				dmgup: "elemDmgUp",
-				dmgdown: "elemDmgDown",
-				resistup: "elemResistUp",
-				resistdown: "elemResistDown",
-				dmgbonus: "elemDmgBonus",
-				weaponboost: "elemWeaponBoost",
-				dmgrcvdup: "elemDmgRcvdUp",
-				mastery: "elemMastery",
-				interruptup: "elemInterruptUp",
-				atbconservation: "elemAtbConservation",
-				weakness: "elemWeakness",
-				abilities: "ampElemAbilities",
-			};
-			return { type: suffixMap[suffix], elem: element };
-		}
-
-		const alias = {
-			windDmgUp: { type: "elemDmgUp", elem: "wind" },
-			singleTgtPhysDmgRcvdUp: { type: "physDmgRcvdUp", elem: "none" },
-			singleTgtMagDmgRcvdUp: { type: "magDmgRcvdUp", elem: "none" },
-			physicalDmgRcvdUp: { type: "physDmgRcvdUp", elem: "none" },
-			magicalDmgRcvdUp: { type: "magDmgRcvdUp", elem: "none" },
-			magicDmgRcvdUp: { type: "magDmgRcvdUp", elem: "none" },
-			elementalDmgRcvdUp: { type: "elemDmgRcvdUp", elem: e },
-		};
-		if (alias[t]) {
-			const a = alias[t];
-			return { type: a.type, elem: a.elem === "none" ? e : a.elem };
-		}
-		return { type: t, elem: e };
 	}
 
 	const target = {
@@ -450,34 +98,6 @@ export function recommendTeamsGrid(
 			includeMateria === undefined ? false : parseBool(includeMateria),
 		coopMode: coopMode === undefined ? false : parseBool(coopMode),
 	};
-
-	function inferPyramidLayer(kind, type) {
-		if (type === "torpor") return 6;
-		if (
-			type === "elemWeaponBoost" ||
-			type === "physWeaponBoost" ||
-			type === "magWeaponBoost"
-		)
-			return 5;
-		if (
-			type === "elemDmgBonus" ||
-			type === "physDmgBonus" ||
-			type === "magDmgBonus"
-		)
-			return 4;
-		if (
-			type === "exploitWeakness" ||
-			type === "physDmgRcvdUp" ||
-			type === "magDmgRcvdUp" ||
-			type === "elemDmgRcvdUp" ||
-			type === "dmgRcvdUp"
-		)
-			return 3;
-		if (type === "enliven" || type === "enfeeble") return 2;
-		if (kind === "amp" && (type === "buff" || type === "debuff")) return 2;
-		if (TIERED_TYPES.has(type)) return 1;
-		return 0;
-	}
 
 	function desiredKey(d) {
 		return [d.kind, d.type, d.elem || "none", d.minTier || 0].join(":");
@@ -617,7 +237,7 @@ export function recommendTeamsGrid(
 			addImplicitUtility("amp", "debuff", 0, "L2: Amp Debuffs", 2);
 
 		// Pyramid Layer 3: weakness exploitation traits. Enemy-side Damage Received Up is debuff-immunity-sensitive,
-		// so physDmgRcvdUp/magDmgRcvdUp/elemDmgRcvdUp/torpor are left to explicit debuff input.
+		// so singleTgtPhysDmgRcvdUp/singleTgtMagDmgRcvdUp/elemDmgRcvdUp/torpor are left to explicit debuff input.
 		if (target.weakElem && target.weakElem !== "nonelem")
 			addImplicitBuff("exploitWeakness", 0, "L3: Exploit Weakness", "none", 3);
 
@@ -675,244 +295,15 @@ export function recommendTeamsGrid(
 	});
 	const desiredList = Array.from(desiredMap.values());
 	const wantedKeys = new Set(desiredList.map((d) => d.key));
-
-	const headers = equipmentsData[0].map((h) => cleanText(h).toLowerCase());
-	const idxId = headers.indexOf("id");
-	const idxChar = headers.indexOf("character");
-	const idxType = headers.indexOf("type");
-	const idxName = headers.indexOf("name");
-	const idxHeld = headers.indexOf("held");
-	const idxCArch = headers.indexOf("c_arch");
-	const idxCElem = headers.indexOf("c_elem");
-	const idxCPot =
-		headers.indexOf("c_pot") >= 0
-			? headers.indexOf("c_pot")
-			: headers.indexOf("c_dmg");
-	const idxCMod = headers.indexOf("c_mod");
-	const idxCaps = headers.indexOf("caps");
-	const schemaWarnings = [];
-	if (idxCaps < 0)
-		schemaWarnings.push(
-			"Input range is missing the caps column. With the c_mod schema, pass Equipments!A:N; A:M stops at customs and will produce blank Utility / Capabilities and Team Total Coverage Summary.",
-		);
-	if (idxCMod < 0)
-		schemaWarnings.push(
-			"Input range is missing the c_mod column. Damage modifiers will be ignored; pass Equipments!A:N for the current schema.",
-		);
-
-	function parseCMods(str) {
-		const mods = [];
-		if (!str) return mods;
-		str
-			.split(";")
-			.map((s) => s.trim())
-			.filter(Boolean)
-			.forEach((modStr) => {
-				const attrs = {};
-				modStr.split(/\s+/).forEach((p) => {
-					const eq = p.indexOf("=");
-					if (eq > -1) attrs[p.slice(0, eq)] = p.slice(eq + 1);
-				});
-				const mult = attrs.mult !== undefined ? Number(attrs.mult) : null;
-				const add = attrs.add !== undefined ? Number(attrs.add) : null;
-				if (mult || add) {
-					mods.push({
-						mult: mult || null,
-						add: add || null,
-						when: attrs.when || "",
-					});
-				}
-			});
-		return mods;
+	const desiredByCapability = new Map();
+	for (const desired of desiredList) {
+		const key = `${desired.kind}:${desired.type}`;
+		if (!desiredByCapability.has(key)) desiredByCapability.set(key, []);
+		desiredByCapability.get(key).push(desired);
 	}
 
-	const resolvedItems = [];
-
-	for (let i = 1; i < equipmentsData.length; i++) {
-		const row = equipmentsData[i];
-		if (!row[idxId] || !row[idxChar]) continue;
-		if (
-			row[idxHeld] !== true &&
-			cleanText(row[idxHeld]).toUpperCase() !== "TRUE"
-		)
-			continue;
-
-		const item = {
-			id: cleanText(row[idxId]),
-			character: cleanText(row[idxChar]),
-			type: cleanText(row[idxType]).toLowerCase(),
-			name: cleanText(row[idxName]),
-			c_arch: row[idxCArch] ? cleanText(row[idxCArch]).toLowerCase() : null,
-			c_elem: row[idxCElem] ? cleanText(row[idxCElem]).toLowerCase() : null,
-			c_pot: Number(row[idxCPot]) || 0,
-			c_mod: idxCMod >= 0 && row[idxCMod] ? cleanText(row[idxCMod]) : "",
-			caps: row[idxCaps] ? cleanText(row[idxCaps]) : "",
-		};
-
-		const capabilities = [];
-		const damageMods = parseCMods(item.c_mod);
-		const damageHits = [];
-		const healHits = [];
-		const customOptions = new Set([null]);
-
-		if (item.c_pot > 0 && item.c_elem === "heal") {
-			// The headline c_pot for a heal weapon is the weapon's own self-targeted
-			// heal command. It is always self-range, so it must be marked "self" and
-			// never leak into Anchor Healer qualification (which requires party
-			// healing). Any party/AOE heal is carried by an explicit `heal range=...`
-			// cap, which is parsed separately below.
-			healHits.push({
-				pot: item.c_pot,
-				range: "self",
-				custom: null,
-				source: "headline",
-			});
-			capabilities.push({
-				kind: "heal",
-				type: "heal",
-				elem: "none",
-				range: "unknown",
-				tier: item.c_pot,
-				custom: null,
-				label: "heal",
-			});
-		} else if (item.c_pot > 0 && item.c_arch && item.c_elem) {
-			damageHits.push({
-				arch: item.c_arch,
-				elem: item.c_elem,
-				pot: item.c_pot,
-				custom: null,
-				mods: damageMods,
-			});
-			capabilities.push({
-				kind: "dmg",
-				type: "elem",
-				elem: item.c_elem,
-				range: "none",
-				tier: 0,
-				custom: null,
-				label: `dmg ${item.c_elem}`,
-			});
-			capabilities.push({
-				kind: "dmg",
-				type: "arch",
-				elem: item.c_arch,
-				range: "none",
-				tier: 0,
-				custom: null,
-				label: `dmg ${item.c_arch}`,
-			});
-		}
-
-		if (item.caps) {
-			item.caps
-				.split(";")
-				.map((s) => s.trim())
-				.filter(Boolean)
-				.forEach((capStr) => {
-					const parts = capStr.split(/\s+/);
-					const kind = parts[0];
-					const attrs = {};
-					parts.slice(1).forEach((p) => {
-						const eq = p.indexOf("=");
-						if (eq > -1) attrs[p.slice(0, eq)] = p.slice(eq + 1);
-					});
-
-					let customTag = null;
-					if (attrs.when) {
-						const customMatch = attrs.when
-							.split("&")
-							.find((w) => w.startsWith("custom:"));
-						if (customMatch) {
-							customTag = customMatch.split(":")[1];
-							customOptions.add(customTag);
-						}
-					}
-
-					if (kind === "dmg") {
-						const dArch = attrs.arch || item.c_arch;
-						const dElem = attrs.elem || item.c_elem;
-						const dPot = Number(attrs.mod || attrs.pot || 0);
-						if (dArch && dElem && dPot > 0) {
-							damageHits.push({
-								arch: dArch,
-								elem: dElem,
-								pot: dPot,
-								custom: customTag,
-								mods: [],
-							});
-							capabilities.push({
-								kind: "dmg",
-								type: "elem",
-								elem: dElem,
-								range: "none",
-								tier: 0,
-								custom: customTag,
-								label: `dmg ${dElem}`,
-							});
-							capabilities.push({
-								kind: "dmg",
-								type: "arch",
-								elem: dArch,
-								range: "none",
-								tier: 0,
-								custom: customTag,
-								label: `dmg ${dArch}`,
-							});
-						}
-						return;
-					}
-
-					if (kind === "heal") {
-						const pot = Number(attrs.pot || attrs.mod || item.c_pot || 0);
-						healHits.push({
-							pot,
-							range: attrs.range || "unknown",
-							custom: customTag,
-							source: "cap",
-						});
-						capabilities.push({
-							kind: "heal",
-							type: "heal",
-							elem: "none",
-							range: attrs.range || "unknown",
-							tier: pot,
-							custom: customTag,
-							label: "heal",
-						});
-						return;
-					}
-
-					const rawType = attrs.type || attrs.status || attrs.target || null;
-					if (!rawType) return;
-					const canon = canonicalizeTypeAndElem(rawType, attrs.elem || "none");
-					const cleanType = canon.type;
-					const tier = normalizeTier(attrs.tier, 0);
-					capabilities.push({
-						kind,
-						type: cleanType,
-						elem: canon.elem || "none",
-						status: attrs.status || null,
-						target: attrs.target || null,
-						range: attrs.range || "none",
-						tier,
-						custom: customTag,
-						mode: attrs.mode || null,
-						when: attrs.when || null,
-						maxTier: normalizeTier(attrs.maxTier, 0),
-						label: capStr,
-					});
-				});
-		}
-
-		resolvedItems.push({
-			item,
-			damage: damageHits,
-			healing: healHits,
-			capabilities,
-			customOptions,
-		});
-	}
+	const { resolvedItems, schemaWarnings } =
+		resolveEquipmentRows(equipmentsData);
 
 	function customOptionsFor(r, chosenCustom) {
 		const customToUse =
@@ -921,7 +312,7 @@ export function recommendTeamsGrid(
 				: r.chosenCustom !== undefined
 					? r.chosenCustom
 					: "AUTO";
-		return customToUse === "AUTO" ? Array.from(r.customOptions) : [customToUse];
+		return customToUse === "AUTO" ? r.customOptions : [customToUse];
 	}
 
 	function hasElementTarget() {
@@ -1203,7 +594,9 @@ export function recommendTeamsGrid(
 			if (cap.kind === "dmg" || cap.kind === "heal") return;
 			if (cap.mode === "passive") return;
 
-			desiredList.forEach((desired) => {
+			const candidates =
+				desiredByCapability.get(`${cap.kind}:${cap.type}`) || [];
+			candidates.forEach((desired) => {
 				if (!capSatisfiesDesired(cap, desired, isMemberAnchor, isDpsAnchor))
 					return;
 
@@ -1612,44 +1005,6 @@ export function recommendTeamsGrid(
 				return true;
 		}
 		return false;
-	}
-
-	function _chooseBestCustom(raw, isAnchor, localCoverageMap, roleKind) {
-		const isDpsAnchor = roleKind === "dps" || roleKind === "dpsHealer";
-		let bestCustom = null;
-		let bestScore = -Infinity;
-		raw.customOptions.forEach((opt) => {
-			const incrementalCoverage = getIncrementalCoverageScoreForItem(
-				raw,
-				isAnchor,
-				opt,
-				localCoverageMap,
-				isDpsAnchor,
-			);
-
-			let score;
-			if (roleKind === "dps" || roleKind === "dpsHealer") {
-				score = getAnchorWeaponPriorityScore(
-					raw,
-					opt,
-					localCoverageMap,
-					isAnchor,
-				);
-			} else if (roleKind === "healer") {
-				score = getHealScore(raw, opt) * 1000000 + incrementalCoverage;
-			} else {
-				score =
-					incrementalCoverage * 1000000 +
-					getWeaponScore(raw, opt) +
-					getHealScore(raw, opt);
-			}
-
-			if (score > bestScore) {
-				bestScore = score;
-				bestCustom = opt;
-			}
-		});
-		return bestCustom;
 	}
 
 	function buildLoadoutForMember(charData, globalCoveredBases, roleKind) {
@@ -2179,7 +1534,7 @@ export function recommendTeamsGrid(
 			damage: [],
 			healing: [],
 			capabilities: [cap],
-			customOptions: new Set([null]),
+			customOptions: [null],
 			chosenCustom: null,
 			materiaAmpSource: ampSource.item.item.name,
 		};
@@ -2603,12 +1958,6 @@ export function recommendTeamsGrid(
 		while (row.length < OUT_COLS) row.push("");
 		return row;
 	}
-	function _joinLimited(parts, limit) {
-		const clean = parts.filter(Boolean);
-		if (clean.length <= limit) return clean.join(", ");
-		return `${clean.slice(0, limit).join(", ")}, +${clean.length - limit} more`;
-	}
-
 	outputGrid.push(
 		pad(["[ TEAM BUILDER PROFILE ]", "", "", "", "", "", "", "", "", ""]),
 	);
@@ -2786,6 +2135,7 @@ export function recommendTeamsGrid(
 			cap.target,
 		);
 		if (cap.tier) display += ` [${tierDisplay(cap.tier)}]`;
+		if (cap.value) display += ` [${cap.value}%]`;
 		if (cap.range && cap.range !== "none" && cap.range !== "unknown")
 			display += ` [${RANGE_LABEL[cap.range] || cap.range}]`;
 		if (cap.mode === "passive") display += " [Passive]";

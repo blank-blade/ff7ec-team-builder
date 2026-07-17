@@ -858,7 +858,6 @@ async function recompute() {
 			lastResult = null;
 			renderDiagnostics([], {});
 			renderEmpty("Loading bundled data...");
-			updateCopyButton();
 			setStatus("Loading bundled data.");
 			return;
 		}
@@ -876,7 +875,6 @@ async function recompute() {
 			renderEmpty(
 				"Schema validation failed. Fix the sheet columns and the app will recalculate.",
 			);
-			updateCopyButton();
 			setStatus("Schema validation failed.", "error");
 			return;
 		}
@@ -899,7 +897,6 @@ async function recompute() {
 		renderEffectPanels(result);
 		renderResult(result);
 		setSourceMeta(result.source);
-		updateCopyButton();
 		setStatus(buildStatusMessage(result.builds.length), "ok");
 	} catch (error) {
 		if (requestId !== renderRequestId) return;
@@ -907,7 +904,6 @@ async function recompute() {
 		lastResult = payload;
 		renderDiagnostics([error.message], payload);
 		renderEmpty("Unable to load or recommend from this data source.");
-		updateCopyButton();
 		setStatus("Failed.", "error");
 	}
 }
@@ -953,6 +949,15 @@ function renderResult(result) {
     </section>
   `;
 	bindEffectHover();
+	bindBuildCopyButtons();
+}
+
+function bindBuildCopyButtons() {
+	document.querySelectorAll("[data-copy-build]").forEach((button) => {
+		button.addEventListener("click", () => {
+			copyBuildJson(Number(button.dataset.copyBuild));
+		});
+	});
 }
 
 function renderEmpty(message) {
@@ -981,6 +986,10 @@ function renderBuildCard(build, index) {
             ${renderCompactTeam(build)}
           </div>
         </div>
+        <button type="button" class="soft-button inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-xs" data-copy-build="${index}" title="Copy build JSON" aria-label="Copy build JSON">
+          <span class="inline-flex size-4 items-center justify-center text-sm leading-none" aria-hidden="true">⧉</span>
+          <span data-copy-label>Copy</span>
+        </button>
         <div class="flex flex-wrap gap-2 xl:justify-end">
           ${stats.map((stat) => pill(stat, stat.startsWith("Coverage") ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200" : "bg-indigo-50 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-200")).join("")}
         </div>
@@ -1501,42 +1510,48 @@ function escapeHtml(value) {
 		.replace(/'/g, "&#039;");
 }
 
-// The "Copy" button copies the full build JSON (inputs + result) so users can
-// share a build and report issues. Always visible.
+// Each build card has its own "Copy" button (see renderBuildCard) that copies
+// that build's JSON plus all the input criteria used to generate it.
 function updateReloadButton() {
 	const button = $("reloadButton");
 	if (button) button.disabled = !state.sheetUrl.trim();
 }
 
-function updateCopyButton() {
-	const button = $("copyBuildButton");
-	if (!button) return;
-	button.classList.remove("hidden");
-	button.disabled = !lastResult || Boolean(lastResult.error);
+function currentInputCriteria() {
+	return {
+		sheetUrl: state.sheetUrl,
+		preset: state.preset,
+		weakArch: state.weakArch,
+		weakElem: state.weakElem,
+		damageAssumption: state.damageAssumption,
+		healerNeeded: state.healerNeeded,
+		includeUW: state.includeUW,
+		includeGear: state.includeGear,
+		includeMateria: state.includeMateria,
+		coopMode: state.coopMode,
+		selectedEffects: currentEffectDefs()
+			.filter((effect) => state.selectedEffects[effect.id])
+			.map((effect) => effect.token),
+	};
 }
 
-async function copyBuildJson() {
+async function copyBuildJson(buildIndex) {
 	if (!lastResult || lastResult.error) return;
+	const build = lastResult.builds?.[buildIndex];
+	if (!build) return;
 	const payload = {
-		inputs: {
-			sheetUrl: state.sheetUrl,
-			preset: state.preset,
-			weakArch: state.weakArch,
-			weakElem: state.weakElem,
-			damageAssumption: state.damageAssumption,
-			healerNeeded: state.healerNeeded,
-			selectedEffects: currentEffectDefs()
-				.filter((effect) => state.selectedEffects[effect.id])
-				.map((effect) => effect.token),
-		},
-		result: lastResult,
+		inputs: currentInputCriteria(),
+		build,
 	};
 	await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
-	const label = $("copyBuildLabel");
-	const old = label.textContent;
-	label.textContent = "Done";
+	const button = document.querySelector(
+		`[data-copy-build="${buildIndex}"] [data-copy-label]`,
+	);
+	if (!button) return;
+	const old = button.textContent;
+	button.textContent = "Done";
 	setTimeout(() => {
-		label.textContent = old;
+		button.textContent = old;
 	}, 1200);
 }
 
@@ -1586,9 +1601,7 @@ function bindInputs() {
 		$(id).addEventListener("change", handleControlChange);
 	}
 	$("reloadButton").addEventListener("click", reloadData);
-	$("copyBuildButton").addEventListener("click", copyBuildJson);
 	updateReloadButton();
-	updateCopyButton();
 	document.addEventListener("click", (event) => {
 		const effectButton = event.target.closest("[data-effect-toggle]");
 		if (effectButton) {

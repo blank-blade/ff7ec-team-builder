@@ -756,10 +756,14 @@ export function recommendTeamsGrid(
 		const customOptions = new Set([null]);
 
 		if (item.c_pot > 0 && item.c_elem === "heal") {
-			// Heal range is carried by optional `heal range=...` caps; those caps are hidden from utility display.
+			// The headline c_pot for a heal weapon is the weapon's own self-targeted
+			// heal command. It is always self-range, so it must be marked "self" and
+			// never leak into Anchor Healer qualification (which requires party
+			// healing). Any party/AOE heal is carried by an explicit `heal range=...`
+			// cap, which is parsed separately below.
 			healHits.push({
 				pot: item.c_pot,
-				range: "unknown",
+				range: "self",
 				custom: null,
 				source: "headline",
 			});

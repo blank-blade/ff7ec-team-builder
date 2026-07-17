@@ -67,8 +67,7 @@ function buildStatusMessage(count) {
 	const n = Number(count) || 0;
 	if (n === 0)
 		return "No matching teams found. Try loosening a target or changing the enemy profile.";
-	if (n === 1) return "1 recommended team is ready.";
-	return `${n} recommended teams are ready.`;
+	return `${n} teams recommended`;
 }
 
 function _friendlyFailureMessage(error) {
@@ -1156,6 +1155,7 @@ function renderMemberCard(member) {
         ${renderSlot("Off", member.weapon2)}
         ${renderSlot("Ult", member.ultimate)}
         ${renderSlot("Gear", member.gear)}
+        ${renderMateriaSlot(member.materia)}
       </div>
       ${
 				member.keyEffects
@@ -1165,7 +1165,6 @@ function renderMemberCard(member) {
       </div>`
 					: ""
 			}
-      ${member.notes ? `<div class="mt-3 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-800 dark:text-slate-200"><strong class="text-slate-800 dark:text-slate-50">Materia / notes:</strong> ${escapeHtml(member.notes)}</div>` : ""}
     </section>
   `;
 }
@@ -1217,6 +1216,43 @@ function renderSlot(label, text) {
       </div>
       ${activeHtml}
       ${inactiveHtml}
+    </div>
+  `;
+}
+
+function renderMateriaSlot(text) {
+	if (!text) {
+		return `
+      <div class="equipment-card" data-effect-index="">
+        <div class="flex flex-wrap items-center gap-2">
+          ${slotLabelPill("Materia")}
+          <span class="text-sm font-bold text-slate-400">None assigned</span>
+        </div>
+      </div>
+    `;
+	}
+
+	const parts = String(text)
+		.split(" | ")
+		.map((x) => x.trim())
+		.filter(Boolean);
+	const chips = parts
+		.map((part) => {
+			const normalized = normalizeEffectLabel(part);
+			const kindClass =
+				normalized === "provoke"
+					? "effect-chip-special"
+					: effectKindClassFromText(part);
+			return `<span class="effect-chip ${kindClass}" data-effect-value="${escapeHtml(normalized)}">${escapeHtml(part)}</span>`;
+		})
+		.join("");
+
+	return `
+    <div class="equipment-card" data-effect-index="${escapeHtml(normalizeEffectLabel(text))}">
+      <div class="flex min-w-0 flex-wrap items-center gap-2">
+        ${slotLabelPill("Materia")}
+      </div>
+      <div class="mt-2 flex flex-wrap gap-1.5">${chips}</div>
     </div>
   `;
 }
@@ -1386,11 +1422,19 @@ function bindEffectHover() {
 function highlightEquipment(effectKey) {
 	if (!effectKey) return;
 	const targets = document.querySelectorAll("[data-effect-index]");
+	// First mark every matching element as highlighted.
 	targets.forEach((el) => {
 		const index = el.dataset.effectIndex || "";
-		const match = index.includes(effectKey) || effectKey.includes(index);
-		el.classList.toggle("is-highlighted", Boolean(match && index));
-		el.classList.toggle("is-dimmed", !match);
+		const match = Boolean(index) && (index.includes(effectKey) || effectKey.includes(index));
+		el.classList.toggle("is-highlighted", match);
+	});
+	// Then dim everything that is neither highlighted itself nor an ancestor of a
+	// highlighted element. This keeps a highlighted child (e.g. the Materia
+	// section) from being dimmed by its dimmed parent card.
+	targets.forEach((el) => {
+		const containsHighlight = el.querySelector(".is-highlighted");
+		const dim = !el.classList.contains("is-highlighted") && !containsHighlight;
+		el.classList.toggle("is-dimmed", dim);
 	});
 }
 
@@ -1457,14 +1501,8 @@ function escapeHtml(value) {
 		.replace(/'/g, "&#039;");
 }
 
-// Dev/local only: expose a "Copy build JSON" button that includes the input
-// parameters. Hidden in production builds.
-const IS_DEV =
-	location.hostname === "localhost" ||
-	location.hostname === "127.0.0.1" ||
-	location.hostname.endsWith(".local") ||
-	import.meta.env?.DEV === true;
-
+// The "Copy" button copies the full build JSON (inputs + result) so users can
+// share a build and report issues. Always visible.
 function updateReloadButton() {
 	const button = $("reloadButton");
 	if (button) button.disabled = !state.sheetUrl.trim();
@@ -1473,10 +1511,6 @@ function updateReloadButton() {
 function updateCopyButton() {
 	const button = $("copyBuildButton");
 	if (!button) return;
-	if (!IS_DEV) {
-		button.classList.add("hidden");
-		return;
-	}
 	button.classList.remove("hidden");
 	button.disabled = !lastResult || Boolean(lastResult.error);
 }
@@ -1500,7 +1534,7 @@ async function copyBuildJson() {
 	await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
 	const label = $("copyBuildLabel");
 	const old = label.textContent;
-	label.textContent = "Copied";
+	label.textContent = "Done";
 	setTimeout(() => {
 		label.textContent = old;
 	}, 1200);

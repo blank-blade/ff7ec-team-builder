@@ -55,6 +55,21 @@ export function recommendTeamsGrid(
 		"elemResistDown",
 		"elemDmgDown",
 	]);
+	// Materia B/D can only amplify a narrow, valid set of stat buffs/debuffs.
+	// Element potency up/down and generic atk/def are excluded because materia
+	// slots cannot carry those effects; only the listed stat shifts and element
+	// resist down are valid materia B/D targets.
+	const MATERIA_TIERED_TYPES = new Set([
+		"patkUp",
+		"matkUp",
+		"pdefUp",
+		"mdefUp",
+		"patkDown",
+		"matkDown",
+		"pdefDown",
+		"mdefDown",
+		"elemResistDown",
+	]);
 	const _ELEMENTS = new Set([
 		"fire",
 		"ice",
@@ -2174,7 +2189,7 @@ export function recommendTeamsGrid(
 			.filter(
 				(desired) =>
 					(desired.kind === "buff" || desired.kind === "debuff") &&
-					TIERED_TYPES.has(desired.type) &&
+					MATERIA_TIERED_TYPES.has(desired.type) &&
 					!covered.has(desired.key),
 			)
 			.sort(
@@ -2579,7 +2594,7 @@ export function recommendTeamsGrid(
 	bestTeams = selectNearOptimalTeams(bestTeams);
 
 	const outputGrid = [];
-	const OUT_COLS = 10;
+	const OUT_COLS = 11;
 	function pad(row) {
 		while (row.length < OUT_COLS) row.push("");
 		return row;
@@ -2667,6 +2682,7 @@ export function recommendTeamsGrid(
 			"Weapon 2",
 			"Ultimate",
 			"Gear",
+			"Materia",
 			"Potency",
 			"Key Effects",
 			"Coverage / Notes",
@@ -2933,15 +2949,18 @@ export function recommendTeamsGrid(
 						),
 					);
 				});
-			// Equipment effects render inline. Generated materia uses the Notes field
-			// because the output schema intentionally stays at the existing 10 columns.
+			// Equipment effects render inline. Generated materia gets its own
+			// column so it can be surfaced as a dedicated section per character.
 			const rowEffects = "";
-			const notes = (member.lo.materia || [])
+			const materiaText = (member.lo.materia || [])
 				.map((it) => {
 					const cap = it.capabilities[0];
 					return `Materia: ${capDisplay(cap)} [Amplified by ${it.materiaAmpSource}]`;
 				})
 				.join(" | ");
+			const notes = (member.lo.materia || []).length
+				? "Materia B/D assigned (see Materia column)."
+				: "";
 			outputGrid.push(
 				pad([
 					"",
@@ -2979,6 +2998,7 @@ export function recommendTeamsGrid(
 						false,
 						isDpsAnchor,
 					),
+					materiaText,
 					`DPS ${member.lo.dps}% / Heal ${member.lo.heal}%`,
 					rowEffects,
 					notes,
@@ -3037,9 +3057,10 @@ export function gridToBuildJson(grid) {
 				weapon2: r[4] || "",
 				ultimate: r[5] || "",
 				gear: r[6] || "",
-				potency: r[7] || "",
-				keyEffects: r[8] || "",
-				notes: r[9] || "",
+				materia: r[7] || "",
+				potency: r[8] || "",
+				keyEffects: r[9] || "",
+				notes: r[10] || "",
 			});
 		}
 	}

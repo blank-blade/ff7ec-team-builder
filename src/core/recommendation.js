@@ -22,6 +22,8 @@ export function recommendTeamsGrid(
 	anchorHealThreshold,
 	includeUW,
 	includeGear,
+	includeMateria,
+	coopMode,
 ) {
 	if (!equipmentsData || equipmentsData.length < 2)
 		return [["No equipment data found"]];
@@ -189,6 +191,8 @@ export function recommendTeamsGrid(
 	// Gear Command Abilities and Ultimate Weapon U.C. Abilities are limited-use actions.
 	// They can still satisfy coverage, but active buff/debuff/amp utility should rank below sustained weapon coverage.
 	const LIMITED_USE_ACTIVE_UTILITY_COVERAGE_FACTOR = 0.55;
+	const MATERIA_ACTIVE_UTILITY_COVERAGE_FACTOR = 0.72;
+	const TOTAL_MATERIA_SLOTS = 3;
 	const exclusiveGroups = [["Sephiroth", "Seph OG"]];
 
 	function cleanText(v) {
@@ -427,6 +431,9 @@ export function recommendTeamsGrid(
 		// active contribution (coverage or heal); otherwise the build is simplified.
 		includeUW: includeUW === undefined ? true : parseBool(includeUW),
 		includeGear: includeGear === undefined ? true : parseBool(includeGear),
+		includeMateria:
+			includeMateria === undefined ? false : parseBool(includeMateria),
+		coopMode: coopMode === undefined ? false : parseBool(coopMode),
 	};
 
 	function inferPyramidLayer(kind, type) {
@@ -873,6 +880,7 @@ export function recommendTeamsGrid(
 						custom: customTag,
 						mode: attrs.mode || null,
 						when: attrs.when || null,
+						maxTier: normalizeTier(attrs.maxTier, 0),
 						label: capStr,
 					});
 				});
@@ -1055,6 +1063,16 @@ export function recommendTeamsGrid(
 		return true;
 	}
 
+	function isMateriaActiveUtility(r, cap) {
+		return !!(
+			r?.item?.type === "materia" &&
+			cap &&
+			cap.kind !== "dmg" &&
+			cap.kind !== "heal" &&
+			cap.mode !== "passive"
+		);
+	}
+
 	function isDefensiveBuffDesired(desired) {
 		return !!(
 			desired &&
@@ -1148,7 +1166,9 @@ export function recommendTeamsGrid(
 			isDefensiveBuffDesired(desired) && cap.when ? -5000 : cap.when ? -500 : 0;
 		const limitedFactor = isLimitedUseActiveUtility(r, cap)
 			? LIMITED_USE_ACTIVE_UTILITY_COVERAGE_FACTOR
-			: 1;
+			: isMateriaActiveUtility(r, cap)
+				? MATERIA_ACTIVE_UTILITY_COVERAGE_FACTOR
+				: 1;
 
 		return Math.round(
 			(layerWeight + tierScore + rangeScore + conditionScore) * limitedFactor,
@@ -1567,6 +1587,7 @@ export function recommendTeamsGrid(
 	const chars = Array.from(charMap.values());
 
 	function isBlocked(chosenSet, charName) {
+		if (target.coopMode) return false;
 		for (const group of exclusiveGroups) {
 			if (group.includes(charName) && group.some((m) => chosenSet.has(m)))
 				return true;
@@ -1932,6 +1953,7 @@ export function recommendTeamsGrid(
 			weapons: wpnPicks,
 			ultimate: uwPick,
 			gear: gearPick,
+			materia: [],
 			dps,
 			heal,
 			teamHeal,
@@ -1966,7 +1988,13 @@ export function recommendTeamsGrid(
 		return (
 			sustainedOnly
 				? [lo.weapons[0], lo.weapons[1]]
-				: [lo.weapons[0], lo.weapons[1], lo.ultimate, lo.gear]
+				: [
+						lo.weapons[0],
+						lo.weapons[1],
+						lo.ultimate,
+						lo.gear,
+						...(lo.materia || []),
+					]
 		).filter(Boolean);
 	}
 
@@ -2069,6 +2097,130 @@ export function recommendTeamsGrid(
 		return anchor ? anchor.lo.dps || 0 : 0;
 	}
 
+	function activeCastCount(lo) {
+		return loadoutSlots(lo).reduce((count, item) => {
+			if (!item?.capabilities) return count;
+			const hasActiveCast = item.capabilities.some((cap) => {
+				if (cap.custom !== null && cap.custom !== item.chosenCustom)
+					return false;
+				if (cap.mode === "passive") return false;
+				return cap.kind !== "set";
+			});
+			return count + (hasActiveCast ? 1 : 0);
+		}, 0);
+	}
+
+	function availableMateriaSlots(lo) {
+		return Math.max(
+			0,
+			TOTAL_MATERIA_SLOTS - (lo.gear ? 1 : 0) - (lo.materia || []).length,
+		);
+	}
+
+	function amplifierForKind(lo, kind) {
+		let best = null;
+		loadoutSlots(lo)
+			.filter((item) => item?.item?.type !== "materia")
+			.forEach((item) => {
+				(item.capabilities || []).forEach((cap) => {
+					if (cap.custom !== null && cap.custom !== item.chosenCustom) return;
+					if (cap.kind !== "amp" || cap.type !== kind || cap.mode === "passive")
+						return;
+					const maxTier = cap.maxTier || cap.tier || 0;
+					if (!best || maxTier > best.maxTier) best = { item, cap, maxTier };
+				});
+			});
+		return best;
+	}
+
+	function createAmplifiedMateria(member, desired, ampSource) {
+		const tier = Math.max(
+			desired.minTier || DEFAULT_TIERED_MIN_TIER,
+			ampSource.maxTier || DEFAULT_TIERED_MIN_TIER,
+		);
+		const cap = {
+			kind: desired.kind,
+			type: desired.type,
+			elem: desired.elem || "none",
+			range: desired.kind === "buff" ? "singleAlly" : "singleEnemy",
+			tier,
+			custom: null,
+			mode: null,
+			when: null,
+			source: "materia",
+			label: `materia ${desired.type}`,
+		};
+		return {
+			item: {
+				id: `materia_${member.cd.character}_${desired.key}`,
+				character: member.cd.character,
+				type: "materia",
+				name: `${effectDisplayName(desired.kind, desired.type, desired.elem)} Materia`,
+			},
+			damage: [],
+			healing: [],
+			capabilities: [cap],
+			customOptions: new Set([null]),
+			chosenCustom: null,
+			materiaAmpSource: ampSource.item.item.name,
+		};
+	}
+
+	function assignAmplifiedMateria(loadouts) {
+		if (!target.includeMateria) return;
+
+		const covered = getTeamCoverageMap(loadouts);
+		const uncovered = desiredList
+			.filter(
+				(desired) =>
+					(desired.kind === "buff" || desired.kind === "debuff") &&
+					TIERED_TYPES.has(desired.type) &&
+					!covered.has(desired.key),
+			)
+			.sort(
+				(a, b) =>
+					(a.layer || 99) - (b.layer || 99) ||
+					(b.minTier || 0) - (a.minTier || 0),
+			);
+
+		for (const desired of uncovered) {
+			const candidates = loadouts
+				.filter(
+					(member) =>
+						member.roleKind !== "dps" &&
+						member.roleKind !== "dpsHealer" &&
+						availableMateriaSlots(member.lo) > 0,
+				)
+				.map((member) => ({
+					member,
+					amp: amplifierForKind(member.lo, desired.kind),
+					casts: activeCastCount(member.lo),
+					remainingSlots: availableMateriaSlots(member.lo),
+				}))
+				.filter((entry) => entry.amp)
+				.sort(
+					(a, b) =>
+						a.casts - b.casts ||
+						b.remainingSlots - a.remainingSlots ||
+						b.amp.maxTier - a.amp.maxTier ||
+						a.member.cd.character.localeCompare(b.member.cd.character),
+				);
+
+			const chosen = candidates[0];
+			if (!chosen) continue;
+			const materia = createAmplifiedMateria(
+				chosen.member,
+				desired,
+				chosen.amp,
+			);
+			chosen.member.lo.materia.push(materia);
+			getCoverageMapForItem(materia, false, false).forEach((entry, key) => {
+				const prev = covered.get(key);
+				if (!prev || entry.score > prev.score) covered.set(key, entry);
+			});
+		}
+	}
+
 	function evaluateTeam(assignments) {
 		teamUsesLimitedProvoke = false;
 		let trackingCoveredBases = new Map();
@@ -2078,6 +2230,7 @@ export function recommendTeamsGrid(
 			trackingCoveredBases = lo.updatedCoveredBases;
 			loadouts.push({ cd: a.cd, role: a.role, roleKind: a.roleKind, lo });
 		});
+		assignAmplifiedMateria(loadouts);
 
 		if (
 			target.healerNeeded &&
@@ -2213,12 +2366,15 @@ export function recommendTeamsGrid(
 	) {
 		anchors.forEach((anchor) => {
 			healerCandidates.forEach((healer) => {
-				if (healer.character === anchor.character) return;
+				if (!target.coopMode && healer.character === anchor.character) return;
 				const chosen = new Set([anchor.character]);
 				if (isBlocked(chosen, healer.character)) return;
 				const chosen2 = new Set(chosen).add(healer.character);
 				chars.forEach((flex) => {
-					if (chosen2.has(flex.character) || isBlocked(chosen2, flex.character))
+					if (
+						(!target.coopMode && chosen2.has(flex.character)) ||
+						isBlocked(chosen2, flex.character)
+					)
 						return;
 					evaluateTeam([
 						{ cd: anchor, role: "Anchor DPS", roleKind: "dps" },
@@ -2235,12 +2391,15 @@ export function recommendTeamsGrid(
 			if ((anchor.topAnchorHealerScore || 0) <= 0) return;
 			const chosen = new Set([anchor.character]);
 			chars.forEach((char2) => {
-				if (chosen.has(char2.character) || isBlocked(chosen, char2.character))
+				if (
+					(!target.coopMode && chosen.has(char2.character)) ||
+					isBlocked(chosen, char2.character)
+				)
 					return;
 				const chosen2 = new Set(chosen).add(char2.character);
 				chars.forEach((char3) => {
 					if (
-						chosen2.has(char3.character) ||
+						(!target.coopMode && chosen2.has(char3.character)) ||
 						isBlocked(chosen2, char3.character)
 					)
 						return;
@@ -2273,14 +2432,14 @@ export function recommendTeamsGrid(
 			const initialChosen = new Set([anchor.character]);
 			chars.forEach((char2) => {
 				if (
-					initialChosen.has(char2.character) ||
+					(!target.coopMode && initialChosen.has(char2.character)) ||
 					isBlocked(initialChosen, char2.character)
 				)
 					return;
 				const chosen2 = new Set(initialChosen).add(char2.character);
 				chars.forEach((char3) => {
 					if (
-						chosen2.has(char3.character) ||
+						(!target.coopMode && chosen2.has(char3.character)) ||
 						isBlocked(chosen2, char3.character)
 					)
 						return;
@@ -2337,7 +2496,13 @@ export function recommendTeamsGrid(
 			.join("|");
 		const equipsSig = team.loadouts
 			.map((m) =>
-				[m.lo.weapons[0], m.lo.weapons[1], m.lo.ultimate, m.lo.gear]
+				[
+					m.lo.weapons[0],
+					m.lo.weapons[1],
+					m.lo.ultimate,
+					m.lo.gear,
+					...(m.lo.materia || []),
+				]
 					.filter(Boolean)
 					.map(
 						(it) => it.item.id + (it.chosenCustom ? `:${it.chosenCustom}` : ""),
@@ -2431,7 +2596,7 @@ export function recommendTeamsGrid(
 	outputGrid.push(
 		pad([
 			"Target",
-			`Archetype: ${target.weakArch ? archLabel(target.weakArch) : "ANY"} | Element: ${target.weakElem ? elemLabel(target.weakElem) : "NONE"} | Healer Required: ${target.healerNeeded ? "TRUE" : "FALSE"} | Damage: ${target.damageAssumption} | Anchor Heal ≥${target.anchorHealThreshold}%`,
+			`Archetype: ${target.weakArch ? archLabel(target.weakArch) : "ANY"} | Element: ${target.weakElem ? elemLabel(target.weakElem) : "NONE"} | Mode: ${target.coopMode ? "Co-op" : "Solo"} | Healer Required: ${target.healerNeeded ? "TRUE" : "FALSE"} | Materia B/D: ${target.includeMateria ? "ON" : "OFF"} | Damage: ${target.damageAssumption} | Anchor Heal ≥${target.anchorHealThreshold}%`,
 			"",
 			"",
 			"",
@@ -2768,9 +2933,15 @@ export function recommendTeamsGrid(
 						),
 					);
 				});
-			// Effects render inline on each slot in the UI, so these grid columns stay empty.
+			// Equipment effects render inline. Generated materia uses the Notes field
+			// because the output schema intentionally stays at the existing 10 columns.
 			const rowEffects = "";
-			const notes = "";
+			const notes = (member.lo.materia || [])
+				.map((it) => {
+					const cap = it.capabilities[0];
+					return `Materia: ${capDisplay(cap)} [Amplified by ${it.materiaAmpSource}]`;
+				})
+				.join(" | ");
 			outputGrid.push(
 				pad([
 					"",
@@ -2888,6 +3059,8 @@ export function recommendTeamsJson(equipmentsData, options = {}) {
 		options.anchorHealThreshold || 47,
 		options.includeUW === undefined ? true : options.includeUW,
 		options.includeGear === undefined ? true : options.includeGear,
+		options.includeMateria === undefined ? false : options.includeMateria,
+		options.coopMode === undefined ? false : options.coopMode,
 	);
 	return gridToBuildJson(grid);
 }

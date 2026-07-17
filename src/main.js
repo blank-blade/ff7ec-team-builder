@@ -191,8 +191,10 @@ const state = {
 	weakElem: "",
 	damageAssumption: "conservative",
 	healerNeeded: false,
+	coopMode: false,
 	includeUW: true,
 	includeGear: true,
+	includeMateria: false,
 	selectedEffects: {},
 	themeMode: "system",
 };
@@ -240,7 +242,7 @@ function readControlsIntoState() {
 	for (const id of CONTROL_IDS) {
 		state[id] = $(id).value;
 	}
-	// The three option toggles are rendered as buttons (see renderMainToggles),
+	// The option toggles are rendered as buttons (see renderMainToggles),
 	// so their state is already tracked in `state` and does not need re-reading
 	// from the DOM here.
 }
@@ -678,6 +680,8 @@ function effectOptionsForRecommendation() {
 		damageAssumption: state.damageAssumption,
 		includeUW: state.includeUW,
 		includeGear: state.includeGear,
+		includeMateria: state.includeMateria,
+		coopMode: state.coopMode,
 	};
 }
 
@@ -762,14 +766,16 @@ function renderToggleChip(effect, isCovered) {
   `;
 }
 
-// The three top-level option toggles (Healer / UW / Gear) reuse the same
+// The top-level option toggles reuse the same
 // chip-button styling as the offensive/defensive effect toggles below, but stay
 // neutral in colour. They are rendered as buttons (not checkboxes) so toggling
 // them behaves identically to the effect chips and immediately triggers recompute.
 const MAIN_TOGGLES = [
 	{ id: "healerNeeded", label: "Healer" },
+	{ id: "coopMode", label: "Co-op" },
 	{ id: "includeUW", label: "UW" },
 	{ id: "includeGear", label: "Gear" },
+	{ id: "includeMateria", label: "Materia B/D" },
 ];
 
 function renderMainToggles() {
@@ -1159,7 +1165,7 @@ function renderMemberCard(member) {
       </div>`
 					: ""
 			}
-      ${member.notes ? `<div class="mt-3 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-800 dark:text-slate-200"><strong class="text-slate-800 dark:text-slate-50">Passive notes:</strong> ${escapeHtml(member.notes)}</div>` : ""}
+      ${member.notes ? `<div class="mt-3 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-800 dark:text-slate-200"><strong class="text-slate-800 dark:text-slate-50">Materia / notes:</strong> ${escapeHtml(member.notes)}</div>` : ""}
     </section>
   `;
 }

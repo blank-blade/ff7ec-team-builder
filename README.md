@@ -10,6 +10,9 @@ Reads equipments catalog from a TSV or public Google Sheets URL and generate tea
 - Falls back to bundled sample TSV files for local UI testing.
 - Validates the expected 14-column equipment schema.
 - Runs the ported recommendation logic in the browser.
+- Ranks valid teams by a sourced theoretical-damage formula for either the anchor
+  DPS or a normalized team total, with explicit lower-bound markers for effects
+  whose percentage is not verified.
 - Shows recommendation results as build cards:
   - team summary and potency
   - coverage chips
@@ -33,6 +36,9 @@ id	character	type	name	held	c_name	ob	lvl	c_arch	c_elem	c_pot	c_mod	customs	caps
 npm install
 npm run dev
 ```
+
+See [Damage model](docs/damage-model.md) for the formula, composition rules,
+inputs, limitations, and research sources.
 
 
 ## Optional presets schema

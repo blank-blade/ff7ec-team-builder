@@ -118,6 +118,36 @@
                   <option value="baseOnly">Base only</option>
                 </select>
               </label>
+              <label class="field-label">
+                Optimize damage
+                <select id="damageObjective" class="field-input">
+                  <option value="anchor">Anchor DPS</option>
+                  <option value="team">Team total</option>
+                </select>
+              </label>
+              <label class="field-label">
+                Damage window
+                <select id="damageWindow" class="field-input">
+                  <option value="sustained">Sustained</option>
+                  <option value="peak">Peak (includes UW/Gear)</option>
+                </select>
+              </label>
+              <label class="field-label">
+                Reference ATK
+                <input id="attackValue" class="field-input" type="number" min="1" step="1" value="1000" />
+              </label>
+              <label class="field-label">
+                Enemy DEF
+                <input id="enemyDefense" class="field-input" type="number" min="0" step="1" value="100" />
+              </label>
+              <label class="field-label">
+                Stance bonus (%)
+                <input id="stanceBonus" class="field-input" type="number" min="0" step="1" value="50" />
+              </label>
+              <label class="field-label">
+                Other potency bonus (%)
+                <input id="basePotencyBonus" class="field-input" type="number" min="0" step="1" value="0" />
+              </label>
               <div id="mainToggles" class="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-1 2xl:col-span-2"></div>
             </div>
           </section>

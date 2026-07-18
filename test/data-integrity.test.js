@@ -79,3 +79,28 @@ test("presets use supported, explicit buff/debuff tokens", async () => {
 		}
 	}
 });
+
+test("bundled effects use exact attack statuses and sourced percentages", async () => {
+	const data = rows(
+		await readFile("public/sample/equipments.latest.tsv", "utf8"),
+	);
+	const header = data[0];
+	const nameIndex = header.indexOf("name");
+	const capsIndex = header.indexOf("caps");
+	const byName = new Map(data.slice(1).map((row) => [row[nameIndex], row]));
+	for (const row of data.slice(1)) {
+		assert.doesNotMatch(row[capsIndex], /(?:^|\s)type=atkDown(?:\s|;|$)/);
+	}
+	assert.match(
+		byName.get("Gun of the Worthy")[capsIndex],
+		/type=elemWeakness elem=ice[^;]*value=50/,
+	);
+	assert.match(
+		byName.get("Rising Sun")[capsIndex],
+		/type=exploitWeakness[^;]*value=60/,
+	);
+	assert.match(
+		byName.get("Chrome Death Penalty")[capsIndex],
+		/type=elemWeaponBoost elem=fire[^;]*value=35/,
+	);
+});

@@ -18,6 +18,11 @@ import {
 	whenDisplay,
 } from "./effect-model.js";
 import { resolveEquipmentRows } from "./equipment-parser.js";
+import {
+	formatDamage,
+	normalizeDamageModelOptions,
+} from "./damage-model.js";
+import { calculateTeamTheoreticalDamage } from "./team-damage.js";
 
 /**
  * Context-Prioritized Custom Google Sheets Function to calculate optimal FF7EC teams.
@@ -45,6 +50,12 @@ export function recommendTeamsGrid(
 	includeGear,
 	includeMateria,
 	coopMode,
+	damageObjective,
+	attackValue,
+	enemyDefense,
+	stanceBonus,
+	basePotencyBonus,
+	damageWindow,
 ) {
 	if (!equipmentsData || equipmentsData.length < 2)
 		return [["No equipment data found"]];
@@ -97,6 +108,14 @@ export function recommendTeamsGrid(
 		includeMateria:
 			includeMateria === undefined ? false : parseBool(includeMateria),
 		coopMode: coopMode === undefined ? false : parseBool(coopMode),
+		damageModel: normalizeDamageModelOptions({
+			objective: damageObjective,
+			attack: attackValue,
+			enemyDefense,
+			stanceBonus,
+			basePotencyBonus,
+			window: damageWindow,
+		}),
 	};
 
 	function desiredKey(d) {
@@ -1650,6 +1669,21 @@ export function recommendTeamsGrid(
 		loadouts.forEach((m) => {
 			m.lo.dps = recomputeLoadoutDps(m.lo, teamSignals);
 		});
+		const theoretical = calculateTeamTheoreticalDamage({
+			loadouts,
+			teamSignals,
+			desiredList,
+			damageModel: target.damageModel,
+			loadoutSlots,
+			conditionSupported: conditionSupportedForDamageMod,
+			damageFitTier: getDamageFitTier,
+			effectivePot: getEffectivePot,
+			hasElementTarget,
+		});
+		theoretical.members.forEach((entry) => {
+			entry.member.lo.theoreticalHit = entry.hit;
+			entry.member.lo.theoreticalDamage = entry.damage;
+		});
 		const teamCoverageMap = getTeamCoverageMap(loadouts);
 		const satisfiedKeys = Array.from(teamCoverageMap.keys()).filter((k) =>
 			wantedKeys.has(k),
@@ -1715,6 +1749,11 @@ export function recommendTeamsGrid(
 		);
 		bestTeams.push({
 			loadouts,
+			anchorTheoreticalDamage: theoretical.anchorDamage,
+			teamTheoreticalDamage: theoretical.teamDamage,
+			objectiveDamage: theoretical.objectiveDamage,
+			damageIsLowerBound: theoretical.isLowerBound,
+			unquantifiedDamageEffects: theoretical.unquantified,
 			anchorDps: getAnchorLoadoutDps(loadouts),
 			anchorHealerScore: teamAnchorHealerScore,
 			usesLimitedProvoke: provokeRequired && teamUsesLimitedProvoke,
@@ -1827,12 +1866,6 @@ export function recommendTeamsGrid(
 		});
 	}
 
-	function anchorDpsBucket(team) {
-		// Avoid letting tiny potency differences dominate, but keep major gaps such
-		// as 1340 vs 940 decisive once foundations are equal.
-		return Math.floor((team.anchorDps || 0) / 100);
-	}
-
 	bestTeams.sort(
 		(a, b) =>
 			// When Provoke is required, strongly prefer teams with a sustained
@@ -1841,15 +1874,10 @@ export function recommendTeamsGrid(
 			(provokeRequired
 				? (a.usesLimitedProvoke ? 1 : 0) - (b.usesLimitedProvoke ? 1 : 0)
 				: 0) ||
-			// First preserve pyramid foundations. Missing Layer 1/2 support should lose.
+			// Rank by the selected formula-based damage objective. Coverage then
+			// distinguishes equal/lower-bound results and preserves requested utility.
+			b.objectiveDamage - a.objectiveDamage ||
 			b.foundationalCoverageCount - a.foundationalCoverageCount ||
-			// Once foundations are equal, sustained Anchor DPS is the headline axis.
-			// This fixes cases where 940% builds outrank 1340% builds solely from
-			// slightly better secondary coverage or healer category.
-			anchorDpsBucket(b) - anchorDpsBucket(a) ||
-			b.anchorDps - a.anchorDps ||
-			// Then weighted utility quality, with AOE defensive buffs prioritized. This keeps the pyramid meaningful without
-			// letting one extra low-value token beat a much stronger anchor.
 			b.importantCoverageCount - a.importantCoverageCount ||
 			b.pyramidCoverageScore - a.pyramidCoverageScore ||
 			b.coveragePower - a.coveragePower ||
@@ -1927,7 +1955,7 @@ export function recommendTeamsGrid(
 			const dominated = selected.some(
 				(existing) =>
 					isCoverageSubset(team, existing) &&
-					(team.anchorDps || 0) <= (existing.anchorDps || 0) &&
+					(team.objectiveDamage || 0) <= (existing.objectiveDamage || 0) &&
 					(team.foundationalCoverageCount || 0) <=
 						(existing.foundationalCoverageCount || 0),
 			);
@@ -1964,7 +1992,7 @@ export function recommendTeamsGrid(
 	outputGrid.push(
 		pad([
 			"Target",
-			`Archetype: ${target.weakArch ? archLabel(target.weakArch) : "ANY"} | Element: ${target.weakElem ? elemLabel(target.weakElem) : "NONE"} | Mode: ${target.coopMode ? "Co-op" : "Solo"} | Healer Required: ${target.healerNeeded ? "TRUE" : "FALSE"} | Materia B/D: ${target.includeMateria ? "ON" : "OFF"} | Damage: ${target.damageAssumption} | Anchor Heal ≥${target.anchorHealThreshold}%`,
+			`Archetype: ${target.weakArch ? archLabel(target.weakArch) : "ANY"} | Element: ${target.weakElem ? elemLabel(target.weakElem) : "NONE"} | Mode: ${target.coopMode ? "Co-op" : "Solo"} | Healer Required: ${target.healerNeeded ? "TRUE" : "FALSE"} | Materia B/D: ${target.includeMateria ? "ON" : "OFF"} | Damage objective: ${target.damageModel.objective} (${target.damageModel.window}) | ATK: ${target.damageModel.attack} | DEF: ${target.damageModel.enemyDefense} | Stance: ${Math.round(target.damageModel.stanceBonus * 100)}% | Base potency bonus: ${Math.round(target.damageModel.basePotencyBonus * 100)}%`,
 			"",
 			"",
 			"",
@@ -2228,6 +2256,10 @@ export function recommendTeamsGrid(
 
 	function teamSummaryPotency(team) {
 		const parts = [];
+		const lowerBound = team.damageIsLowerBound ? "≥" : "";
+		parts.push(
+			`${target.damageModel.objective === "team" ? "Team hit" : "Anchor hit"} ${lowerBound}${formatDamage(team.objectiveDamage)}`,
+		);
 
 		if ((team.anchorDps || 0) > 0) {
 			parts.push(`Anchor ${team.anchorDps}%`);
@@ -2263,6 +2295,9 @@ export function recommendTeamsGrid(
 		const teamSignals = getTeamSignals(team.loadouts);
 		const coverageText =
 			team.coveredTokensDisplay || "No desired utility coverage";
+		const damageNote = team.damageIsLowerBound
+			? `Lower bound; unquantified: ${team.unquantifiedDamageEffects.join(", ")}`
+			: `Expected range ${formatDamage(team.objectiveDamage * 0.985)}–${formatDamage(team.objectiveDamage * 1.015)}`;
 		outputGrid.push(
 			pad([
 				`Build #${k + 1}`,
@@ -2274,7 +2309,7 @@ export function recommendTeamsGrid(
 				"",
 				teamSummaryPotency(team),
 				`Coverage ${team.coverageCount}/${desiredList.length} | Foundations ${team.foundationalCoverageCount}/${desiredList.filter((d) => d.layer === 1 || d.layer === 2).length} | T3+ ${team.highTierCoverageCount}`,
-				coverageText,
+				`${coverageText}${damageNote ? ` | ${damageNote}` : ""}`,
 			]),
 		);
 
@@ -2353,7 +2388,7 @@ export function recommendTeamsGrid(
 						isDpsAnchor,
 					),
 					materiaText,
-					`DPS ${member.lo.dps}% / Heal ${member.lo.heal}%`,
+					`${member.lo.theoreticalDamage ? `Hit ${member.lo.theoreticalDamage.isLowerBound ? "≥" : ""}${formatDamage(member.lo.theoreticalDamage.damage)} / ` : ""}DPS ${member.lo.dps}% / Heal ${member.lo.heal}%`,
 					rowEffects,
 					notes,
 				]),
@@ -2436,6 +2471,12 @@ export function recommendTeamsJson(equipmentsData, options = {}) {
 		options.includeGear === undefined ? true : options.includeGear,
 		options.includeMateria === undefined ? false : options.includeMateria,
 		options.coopMode === undefined ? false : options.coopMode,
+		options.damageObjective || "anchor",
+		options.attackValue ?? 1000,
+		options.enemyDefense ?? 100,
+		options.stanceBonus ?? 50,
+		options.basePotencyBonus ?? 0,
+		options.damageWindow || "sustained",
 	);
 	return gridToBuildJson(grid);
 }

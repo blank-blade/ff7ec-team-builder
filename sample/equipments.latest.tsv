@@ -1,0 +1,695 @@
+id	character	type	name	held	c_name	ob	lvl	c_arch	c_elem	c_pot	c_mod	customs	caps
+wpn_cloud_buster_sword	Cloud	gacha	Buster Sword	TRUE	Braver++	10	140	phys	nonelem	750	mult=1.5 when=matchingSigil		
+wpn_cloud_maritime_sword	Cloud	gacha	Maritime Sword	TRUE	Seasplitter++	10	140	phys	water	750			
+wpn_cloud_skysplitter	Cloud	gacha	Skysplitter	TRUE	Firebolt Blade++	10	140	phys	fire	850			
+wpn_cloud_apocalypse	Cloud	gacha	Apocalypse	TRUE	Bloody End++	10	140	phys	nonelem	940			
+wpn_cloud_bandaged_sword	Cloud	gacha	Bandaged Sword	TRUE	Sanctuary++	10	140	mag	heal	6			buff type=mdefUp tier=3 range=allAllies; heal range=allAllies
+wpn_cloud_murasame	Cloud	gacha	Murasame	TRUE	Thunderstrike++	10	140	phys	lightning	750			
+wpn_cloud_hardedge	Cloud	gacha	Hardedge	TRUE	Armor Break++	10	140	phys	nonelem	510			debuff type=pdefDown tier=3
+wpn_cloud_butterfly_edge	Cloud	gacha	Butterfly Edge	TRUE	Stalwart Barrier++	10	140	mag	heal	13			buff type=pdefUp tier=3; heal range=singleAlly
+wpn_cloud_crystal_sword	Cloud	gacha	Crystal Sword	TRUE	Healing Wave++	10	140	mag	heal	71			heal range=allAllies
+wpn_cloud_iron_blade	Cloud	gacha	Iron Blade	TRUE	Blast Wave++	10	140	phys	nonelem	350			debuff type=patkDown tier=2
+wpn_cloud_enhanced_sword	Cloud	gacha	Enhanced Sword	TRUE	Blizzaga A++	10	140	mag	ice	520			
+wpn_cloud_mythril_saber	Cloud	gacha	Mythril Saber	TRUE	Blade Burst++	10	140	mag	nonelem	940			
+wpn_cloud_organics	Cloud	gacha	Organics	TRUE	Shock Slice++	10	140	phys	nonelem	750			debuff status=stun
+wpn_cloud_mystic_sword	Cloud	gacha	Mystic Sword	TRUE	Forcestream++	10	140	mag	nonelem	420		spade|diamond	debuff type=matkDown tier=3; debuff type=patkDown tier=3 when=selfHpGe70; amp target=buff tier=1 maxTier=4 range=allAllies when=custom:spade; buff type=quintInterrupt range=allAllies mode=passive when=custom:diamond
+wpn_cloud_full_throttle	Cloud	gacha	Full Throttle	TRUE	Icicle Axle++	10	140	mag	ice	1120			buff type=matkUp tier=3 range=self; debuff type=mdefDown tier=3 when=hitWeakness
+wpn_cloud_umbralschwert	Cloud	gacha	Umbralschwert	TRUE	Aquatic Wave++	10	140	mag	water	1340		heart|diamond	debuff type=elemResistDown elem=water tier=3; debuff type=enfeeble when=firstUse; dmg arch=mag elem=water mod=1680 when=custom:heart; buff type=quintInterrupt range=allAllies mode=passive when=custom:diamond
+wpn_cloud_nail_bat	Cloud	guild	Nail Bat	TRUE	Disorder++	10	140	phys	nonelem	1600		diamond	gauge type=atb range=self mode=passive when=custom:diamond; buff type=elemDmgUp elem=ice when=custom:diamond
+wpn_cloud_shivas_blade	Cloud	event	Shiva's Blade	TRUE	Blizzara Surge++	10	140	mag	ice	450			
+wpn_cloud_zidanes_sword	Cloud	crossover	Zidane's Sword	TRUE	Free Energy++	10	140	phys	nonelem	1300			
+wpn_cloud_holiday_cheer	Cloud	event	Holiday Cheer	TRUE	Quakera Surge A++	10	140	mag	earth	290			
+wpn_cloud_igneous_saber	Cloud	event	Igneous Saber	TRUE	Fira Surge A++	10	140	mag	fire	290			
+wpn_cloud_stream_saber	Cloud	limited	Stream Saber	TRUE	Freezing Stream++	10	140	phys	ice	1020			buff type=hpGain range=allAllies
+wpn_cloud_rune_blade	Cloud	event	Rune Blade	TRUE	Blizzara Surge A++	10	140	mag	ice	290			
+wpn_cloud_glavenus_sword	Cloud	crossover	Glavenus Sword	TRUE	Fierce Charged Slash++	10	140	phys	nonelem	850			debuff type=pdefDown tier=2; buff type=patkUp tier=3 range=self when=selfHpGe50
+wpn_cloud_burning_oar	Cloud	event	Burning Oar	TRUE	Fira Impact++	10	140	phys	fire	450			
+wpn_cloud_bahamut_greatsword	Cloud	limited	Bahamut Greatsword	TRUE	Fierce Claw++	10	140	phys	nonelem	800	add=40000 when=selfHpGe50		buff type=haste range=self when=firstUse
+wpn_cloud_lockes_sword	Cloud	crossover	Locke's Sword	TRUE	Slashing Rush++	10	140	phys	nonelem	1010			buff type=elemDmgUp elem=fire tier=3 range=self; buff type=elemDmgUp elem=ice tier=3 range=self; buff type=elemDmgUp elem=lightning tier=3 range=self
+wpn_cloud_holiday_blade	Cloud	gacha	Holiday Blade	TRUE	Twister Blade++	10	140	mag	wind	940	mult=1.2 when=targetHasDebuff		
+wpn_cloud_chocobo_paddle	Cloud	event	Chocobo Paddle	TRUE	Defira Surge A++	10	140	mag	nonelem	250			debuff type=elemResistDown elem=fire tier=2
+wpn_cloud_sleek_saber	Cloud	event	Sleek Saber	TRUE	Armora Breach Surge A++	10	140	mag	nonelem	250			debuff type=pdefDown tier=2
+wpn_cloud_umbral_blade	Cloud	event	Umbral Blade	TRUE	Scratch++	10	140	phys	nonelem	430	add=10000 when=selfHpGe50		
+wpn_cloud_radblade	Cloud	event	Radblade	TRUE	Watera Impact++	10	140	phys	water	450			
+wpn_cloud_erdricks_sword	Cloud	crossover	Erdrick's Sword	TRUE	Gigaslash++	10	140	phys	lightning	720	mult=1.5 when=singleTarget		debuff type=enfeeble; debuff type=matkDown tier=3 when=selfHpGe50
+wpn_cloud_fusion_sword	Cloud	limited	Fusion Sword	TRUE	Torrential Shine++	10	140	phys	nonelem	1340			buff type=physWeaponBoost range=self value=40; buff type=magWeaponBoost range=self value=40; buff type=exploitWeakness range=self when=selfHpGe50 value=40
+wpn_cloud_crimson_blitz	Cloud	crossover	Crimson Blitz	TRUE	Lightning Rush++	10	140	mag	nonelem	800		spade|diamond	debuff type=elemWeakness elem=ice value=30; buff type=elemDmgBonus elem=ice range=allAllies when=selfHpGe50 value=30; buff type=elemAtbConservation elem=ice range=allAllies when=custom:spade; buff type=elemInterruptUp elem=ice range=allAllies mode=passive when=custom:diamond
+wpn_cloud_cruel_successor	Cloud	crossover	Cruel Successor	TRUE	Gyral Slash++	10	140	phys	earth	1340			buff type=elemWeaponBoost elem=earth range=allAllies value=35
+wpn_cloud_noble_parasol	Cloud	limited	Noble Parasol	TRUE	Soaring Rose++	10	140	phys	nonelem	1340		spade|diamond	debuff type=singleTgtPhysDmgRcvdUp; debuff type=singleTgtMagDmgRcvdUp; buff type=haste range=allAllies when=firstUse; buff type=enliven range=allAllies when=custom:spade; buff type=quintInterrupt range=allAllies mode=passive when=custom:diamond
+wpn_barret_sharkslayer	Barret	gacha	Sharkslayer	TRUE	Dorsal Fin Shot++	10	140	phys	nonelem	420			debuff type=elemResistDown elem=fire tier=3; debuff type=elemResistDown elem=water tier=3 when=selfHpGe50
+wpn_barret_heavy_hauser	Barret	gacha	Heavy Hauser	TRUE	Pyroball++	10	140	phys	nonelem	940			
+wpn_barret_heavy_vulcan	Barret	gacha	Heavy Vulcan	TRUE	Stalwart Manaward++	10	140						buff type=mdefUp tier=3 range=self
+wpn_barret_assault_gun	Barret	gacha	Assault Gun	TRUE	Agitation++	10	140						buff type=pdefUp tier=3 range=allAllies
+wpn_barret_enemy_launcher	Barret	gacha	Enemy Launcher	TRUE	Chain Bomber++	10	140	phys	nonelem	650			
+wpn_barret_w_machine	Barret	gacha	W Machine	TRUE	Quick Burst++	10	140	phys	nonelem	510			debuff type=pdefDown tier=3
+wpn_barret_solid_bazooka	Barret	gacha	Solid Bazooka	TRUE	Doom Impact++	10	140	phys	nonelem	510			debuff type=matkDown tier=3
+wpn_barret_electrocannon	Barret	gacha	Electrocannon	TRUE	Energization++	10	140	mag	lightning	540			debuff type=patkDown tier=3 range=allEnemies; debuff type=matkDown tier=2 range=allEnemies when=selfHpGe50
+wpn_barret_max_ray	Barret	gacha	Max Ray	TRUE	Energy Laser++	10	140	mag	nonelem	750		diamond	buff type=physResistUp range=self mode=passive when=custom:diamond
+wpn_barret_flame_projector	Barret	gacha	Flame Projector	TRUE	Firaga A++	10	140	mag	fire	520			
+wpn_barret_gatling_gun	Barret	gacha	Gatling Gun	TRUE	Blitz Beat++	10	140	phys	nonelem	750			
+wpn_barret_escutcheon_cannon	Barret	gacha	Escutcheon Cannon	TRUE	Zone of Protection++	10	140	mag	heal	7			buff type=mdefUp tier=3 range=allAllies; buff type=matkUp tier=3 range=allAllies when=selfHpGe70; heal range=allAllies
+wpn_barret_microlaser	Barret	gacha	Microlaser	TRUE	Stalwart Faith++	10	140	mag	heal	13			buff type=matkUp tier=3 range=self; buff type=regen range=self; heal range=singleAlly; set type=allCure
+wpn_barret_sunrise_cannon	Barret	gacha	Sunrise Cannon	TRUE	Sunrise Barrage++	10	140	phys	nonelem	780			buff type=elemResistUp elem=fire tier=3 range=allAllies; buff type=elemResistUp elem=lightning tier=3 range=allAllies; buff type=pdefUp tier=3 range=allAllies when=selfHpGe70
+wpn_barret_rocket_punch	Barret	guild	Rocket Punch	TRUE	Jet Fists++	10	140	phys	nonelem	500		diamond	buff type=pdefBoost range=self mode=passive when=custom:diamond; buff type=elemMastery elem=wind range=allAllies mode=passive when=custom:diamond
+wpn_barret_shiva_cannon	Barret	event	Shiva Cannon	TRUE	Blizzara Surge++	10	140	mag	ice	450			
+wpn_barret_lefko_kypseli	Barret	event	Lefko Kypseli	TRUE	Solid Barrier++	10	140						buff type=pdefUp tier=3 range=self
+wpn_barret_hell_house_cannon	Barret	event	Hell House Cannon	TRUE	Manara Breach Surge++	10	140	mag	nonelem	360			debuff type=mdefDown tier=2
+wpn_barret_siege_cannon	Barret	event	Siege Cannon	TRUE	Watera Surge A++	10	140	mag	water	290			
+wpn_barret_leviathan_buster	Barret	event	Leviathan Buster	TRUE	Watera Surge++	10	140	mag	water	450			
+wpn_barret_rhad_cannon	Barret	event	Rhad Cannon	TRUE	Solid Bravery++	10	140	mag	heal	13			buff type=patkUp tier=2 range=self; buff type=regen range=self; heal range=singleAlly
+wpn_barret_fafnir_rifle	Barret	crossover	Fafnir Rifle	TRUE	Dragon's Roar++	10	140	phys	nonelem	540			buff type=provoke range=self; buff type=veil range=self; buff type=pdefUp tier=3 range=allAllies when=selfHpGe70
+wpn_barret_teachers_paper_fan	Barret	limited	Teacher's Paper Fan	TRUE	Winds of Discipline++	10	140	phys	wind	500		spade|diamond	debuff type=elemResistDown elem=wind tier=3 range=allEnemies when=selfHpGe50; buff type=veil range=self; buff type=elemDmgUp elem=wind tier=3 range=allAllies when=custom:spade; buff type=physResistUp range=self mode=passive when=custom:diamond
+wpn_barret_hook_launcher	Barret	event	Hook Launcher	TRUE	Thundara Surge A++	10	140	mag	lightning	290			
+wpn_barret_quad_gatling_gun	Barret	event	Quad Gatling Gun	TRUE	Armora Breach Surge++	10	140	mag	nonelem	360			debuff type=pdefDown tier=2
+wpn_tifa_lifeguard_wraps	Tifa	gacha	Lifeguard Wraps	TRUE	Healing Waves++	10	140	mag	heal	54			heal range=allAllies
+wpn_tifa_crystal_gloves	Tifa	gacha	Crystal Gloves	TRUE	Thundaga A++	10	140	mag	lightning	500			
+wpn_tifa_sonic_striker	Tifa	gacha	Sonic Striker	TRUE	Divekick++	10	140	phys	nonelem	990			
+wpn_tifa_holy_flame_gloves	Tifa	gacha	Holy Flame Gloves	TRUE	Freezing Blow++	10	140	phys	ice	800			
+wpn_tifa_kaiser_knuckles	Tifa	gacha	Kaiser Knuckles	TRUE	Chi Trap++	10	140	mag	nonelem	480			debuff type=mdefDown tier=3
+wpn_tifa_grand_gloves	Tifa	gacha	Grand Gloves	TRUE	Vigor++	10	140	phys	heal	130			buff type=removePoison range=self; buff type=removeSilence range=self; heal range=self
+wpn_tifa_bunny_gloves	Tifa	gacha	Bunny Gloves	TRUE	Aqua Splash++	10	140	mag	water	850			buff type=matkUp tier=3 range=self when=selfHpGe50
+wpn_tifa_tiger_fangs	Tifa	gacha	Tiger Fangs	TRUE	Uppershot++	10	140	phys	nonelem	540			debuff type=matkDown tier=3
+wpn_tifa_motor_drive	Tifa	gacha	Motor Drive	TRUE	Sonic Spiral++	10	140	phys	wind	790			
+wpn_tifa_shell_knuckles	Tifa	gacha	Shell Knuckles	TRUE	Spinning Fervor++	10	140	mag	fire	940	mult=1.2 when=selfHpGe70		
+wpn_tifa_feathered_gloves	Tifa	gacha	Feathered Gloves	TRUE	Featherstrike++	10	140	phys	nonelem	420		spade|diamond	debuff type=mdefDown tier=2; buff type=elemDmgUp elem=water tier=3 range=self when=selfHpGe50; buff type=hpGain range=allAllies when=custom:spade&firstUse; buff type=elemInterruptUp elem=water range=allAllies mode=passive when=custom:diamond
+wpn_tifa_powersoul	Tifa	gacha	Powersoul	TRUE	Savage Blast++	10	140	mag	nonelem	900			
+wpn_tifa_leather_gloves	Tifa	gacha	Leather Gloves	TRUE	Omnistrike++	10	140	phys	nonelem	540			debuff type=patkDown tier=3
+wpn_tifa_shining_gloves	Tifa	gacha	Shining Gloves	TRUE	Hydrospike++	10	140	phys	water	1120		spade|diamond	debuff type=patkDown tier=3; debuff type=matkDown tier=3 when=selfHpGe50; debuff type=enfeeble when=custom:spade; buff type=elemInterruptUp elem=water range=allAllies mode=passive when=custom:diamond
+wpn_tifa_work_gloves	Tifa	guild	Work Gloves	TRUE	Wall of Will++	10	140	mag	heal	13		diamond	buff type=pdefUp tier=3 range=self; buff type=patkUp tier=3 range=self; gauge type=atb range=self mode=passive when=custom:diamond; buff type=elemMastery elem=fire range=allAllies mode=passive when=custom:diamond; heal range=self
+wpn_tifa_amarants_claws	Tifa	crossover	Amarant's Claws	TRUE	No Mercy++	10	140	phys	nonelem	720			buff type=patkUp tier=3 range=self
+wpn_tifa_bahamut_knuckles	Tifa	event	Bahamut Knuckles	TRUE	Ruinra Surge++	10	140	mag	nonelem	450			
+wpn_tifa_oven_mitts	Tifa	event	Oven Mitts	TRUE	Solid Bravery++	10	140	mag	heal	13			buff type=patkUp tier=2 range=self; buff type=regen range=self; heal range=singleAlly
+wpn_tifa_guide_gloves	Tifa	crossover	Guide Gloves	TRUE	Zangan Fist++	10	140	phys	nonelem	1300		spade|diamond	debuff type=matkDown tier=3 when=custom:spade; debuff type=elemResistDown elem=fire tier=3 when=custom:spade&selfHpGe50; buff type=physInterruptUp range=allAllies mode=passive when=custom:diamond
+wpn_tifa_turks_gloves	Tifa	event	Turks' Gloves	TRUE	Armora Breach Surge++	10	140	mag	nonelem	360			debuff type=pdefDown tier=2
+wpn_tifa_kirin_gloves	Tifa	crossover	Kirin Gloves	TRUE	Spiral Levin Strike++	10	140	mag	lightning	940			buff type=matkUp tier=2 range=self when=selfHpGe50
+wpn_tifa_steward_gloves	Tifa	event	Steward Gloves	TRUE	Debravera Surge++	10	140	mag	nonelem	360			debuff type=patkDown tier=2
+wpn_tifa_bahamut_fangs	Tifa	limited	Bahamut Fangs	TRUE	Dark Strike++	10	140	mag	nonelem	1100			buff type=haste range=self when=firstUse; buff type=matkUp tier=3 range=allAllies
+wpn_tifa_black_cats_paws	Tifa	event	Black Cat's Paws	TRUE	Thundara Surge A++	10	140	mag	lightning	290			
+wpn_tifa_sabins_claws	Tifa	crossover	Sabin's Claws	TRUE	Aura Cannon++	10	140	phys	nonelem	800	add=40000 when=selfHpGe50		buff type=patkUp tier=3 range=self; buff type=matkUp tier=3 range=self
+wpn_tifa_blue_daffodil_gloves	Tifa	limited	Blue Daffodil Gloves	TRUE	Blue Florescent Flurry++	10	140	phys	nonelem	1100			buff type=exploitWeakness range=self value=40
+wpn_tifa_jarngreipr	Tifa	event	Járngreipr	TRUE	Armora Breach Surge A++	10	140	mag	nonelem	250			debuff type=pdefDown tier=2 range=allEnemies
+wpn_tifa_gauntlets_of_the_worthy	Tifa	limited	Gauntlets of the Worthy	TRUE	Geo Combo++	10	140	phys	earth	1120			buff type=elemDmgUp elem=earth tier=3 range=allAllies when=selfHpGe50; gauge type=atb range=self when=firstUse
+wpn_tifa_odin_gloves	Tifa	event	Odin Gloves	TRUE	Aerora Surge++	10	140	mag	wind	450			
+wpn_tifa_class_presidents_bracelet	Tifa	limited	Class President's Bracelet	TRUE	Student Council Windstrike++	10	140	phys	wind	1060			buff type=patkUp tier=3 range=allAllies when=selfHpGe50
+wpn_tifa_penance_gloves	Tifa	event	Penance Gloves	TRUE	Fira Surge A++	10	140	mag	fire	290			
+wpn_tifa_striped_moogle_gloves	Tifa	event	Striped Moogle Gloves	TRUE	Defaithra Surge++	10	140	mag	nonelem	360			debuff type=matkDown tier=2
+wpn_tifa_leather_combat_gloves	Tifa	limited	Leather Combat Gloves	TRUE	Detonating Blow++	10	140	mag	nonelem	1340			debuff type=enfeeble range=allEnemies when=selfHpGe50; amp target=buff tier=4 range=allAllies
+wpn_tifa_lightnings_gloves	Tifa	crossover	Lightning's Gloves	TRUE	Army of Strikes++	10	140	mag	ice	1340		spade|diamond	debuff type=elemResistDown elem=ice tier=3; buff type=exploitWeakness range=self when=selfHpGe70 value=30; debuff type=patkDown tier=3 when=custom:spade; buff type=elemInterruptUp elem=ice range=allAllies mode=passive when=custom:diamond
+wpn_tifa_demons_impetus	Tifa	crossover	Demon's Impetus	TRUE	Spinning Wheel Flurry++	10	140	phys	nonelem	1340			buff type=physDmgBonus range=self value=40; buff type=patkUp tier=3 range=allAllies when=selfHpGe50
+wpn_tifa_festive_gloves	Tifa	limited	Festive Gloves	TRUE	Planet's Flaming Fist++	10	140	phys	fire	1340		heart|diamond	debuff type=singleTgtPhysDmgRcvdUp value=50; gauge type=gearUses range=self when=firstUse; dmg arch=phys elem=fire mod=1680 when=custom:heart; buff type=elemInterruptUp elem=fire range=allAllies mode=passive when=custom:diamond
+wpn_tifa_elegant_gloves	Tifa	limited	Elegant Gloves	TRUE	Spiral Tremor++	10	140	mag	earth	1340		heart|diamond	buff type=elemWeaponBoost elem=earth range=allAllies value=35; buff type=ampElemAbilities elem=earth range=self when=firstUse value=50; dmg arch=mag elem=earth mod=1680 when=custom:heart; buff type=elemInterruptUp elem=earth range=allAllies mode=passive when=custom:diamond
+wpn_aerith_sun_umbrella	Aerith	gacha	Sun Umbrella	TRUE	Nightbloom++	10	140	mag	nonelem	540			debuff type=pdefDown tier=2; debuff type=mdefDown tier=2
+wpn_aerith_snowflake	Aerith	gacha	Snowflake	TRUE	Snowspell++	10	140	mag	ice	540			debuff type=mdefDown tier=3; set type=allCure
+wpn_aerith_full_metal_staff	Aerith	gacha	Full Metal Staff	TRUE	Heavenly Spike++	10	140	phys	nonelem	340			debuff type=patkDown tier=2 range=allEnemies
+wpn_aerith_mythril_rod	Aerith	gacha	Mythril Rod	TRUE	Saving Grace++	10	140	mag	heal	9			buff type=pdefUp tier=2 range=allAllies; buff type=mdefUp tier=2 range=allAllies; heal range=allAllies
+wpn_aerith_egg_staff	Aerith	gacha	Egg Staff	TRUE	Helical Flame++	10	140	mag	fire	630	mult=1.3 when=singleTarget		set type=allCure
+wpn_aerith_prism_rod	Aerith	gacha	Prism Rod	TRUE	Raging Sphere++	10	140	mag	wind	800			
+wpn_aerith_silver_staff	Aerith	gacha	Silver Staff	TRUE	Blizzaga A++	10	140	mag	ice	540			
+wpn_aerith_fairy_tale	Aerith	gacha	Fairy Tale	TRUE	Curaga A++	10	140	mag	heal	74			heal range=allAllies
+wpn_aerith_wizer_staff	Aerith	gacha	Wizer Staff	TRUE	Quaga A++	10	140	mag	earth	540			
+wpn_aerith_striking_staff	Aerith	gacha	Striking Staff	TRUE	Tempest Force++	10	140	phys	nonelem	900		spade|diamond	debuff type=elemDmgDown elem=lightning tier=3 when=custom:spade; buff type=patkUp tier=3 range=allAllies when=custom:spade; buff type=ampHealing range=self mode=passive when=custom:diamond
+wpn_aerith_floral_wand	Aerith	gacha	Floral Wand	TRUE	Floral Flare++	10	140	phys	nonelem	420			debuff type=pdefDown tier=2; debuff type=elemResistDown elem=wind tier=3 when=selfHpGe50; set type=allCure
+wpn_aerith_guard_stick	Aerith	gacha	Guard Stick	TRUE	Stalwart Manaward++	10	140	mag	heal	15			buff type=mdefUp tier=3; heal range=singleAlly
+wpn_aerith_wizard_staff	Aerith	gacha	Wizard Staff	TRUE	Thundaga A++	10	140	mag	lightning	540			
+wpn_aerith_citric_wand	Aerith	gacha	Citric Wand	TRUE	Fruitful Energy++	10	140	mag	heal	9			buff type=elemDmgUp elem=ice tier=3; buff type=matkUp tier=3 when=selfHpGe50; heal range=singleAlly
+wpn_aerith_mermaid_rod	Aerith	gacha	Mermaid Rod	TRUE	Pink Aura++	10	140	mag	heal	7		spade|diamond	buff type=patkUp tier=3 range=allAllies; buff type=elemDmgUp elem=lightning tier=3 range=allAllies; gauge type=limit range=allAllies when=custom:spade; buff type=elemInterruptUp elem=lightning range=allAllies mode=passive when=custom:diamond; heal range=allAllies
+wpn_aerith_umbrella	Aerith	guild	Umbrella	TRUE	Cleansing Rain++	10	140	mag	heal	108		diamond	buff type=removePatkDown; buff type=removeMatkDown; buff type=elemMastery elem=water range=allAllies mode=passive when=custom:diamond; heal range=singleAlly; set type=allCure
+wpn_aerith_ramuhs_staff	Aerith	event	Ramuh's Staff	TRUE	Thundara Surge++	10	140	mag	lightning	480			
+wpn_aerith_chocobo_staff	Aerith	event	Chocobo Staff	TRUE	Solid Manaward++	10	140		heal	5			buff type=mdefUp tier=3; heal range=singleAlly
+wpn_aerith_garnets_rod	Aerith	crossover	Garnet's Rod	TRUE	Healing Pulse++	10	140		heal	5			buff type=matkUp tier=3; buff type=regen; heal range=singleAlly
+wpn_aerith_dawns_prayers	Aerith	event	Dawn's Prayers	TRUE	Armora Breach Surge++	10	140	mag	nonelem	360			debuff type=pdefDown tier=2
+wpn_aerith_kamura_wand	Aerith	crossover	Kamura Wand	TRUE	Spiritual Harmony++	10	140		heal	5			buff type=patkUp tier=3 range=allAllies; buff type=mdefUp tier=3 range=allAllies when=selfHpGe70; heal range=allAllies; set type=allCure
+wpn_aerith_radrod	Aerith	event	Radrod	TRUE	Watera Surge A++	10	140	mag	water	290			
+wpn_aerith_hell_house_rod	Aerith	event	Hell House Rod	TRUE	Blizzara Surge A++	10	140	mag	ice	290			
+wpn_aerith_bahamut_rod	Aerith	limited	Bahamut Rod	TRUE	Blessed Aura++	10	140		heal	5			buff type=pdefUp tier=2 range=allAllies; buff type=atbGift range=allyExcludingSelf when=selfHpLe90; heal range=allAllies; set type=allEsuna
+wpn_aerith_terras_rod	Aerith	crossover	Terra's Rod	TRUE	Riot Blade++	10	140	mag	nonelem	750			debuff type=elemResistDown elem=fire tier=3 range=allEnemies; debuff type=elemResistDown elem=ice tier=3 range=allEnemies; debuff type=elemResistDown elem=lightning tier=3 range=allEnemies; set type=allCure
+wpn_aerith_titan_rod	Aerith	event	Titan Rod	TRUE	Quakera Surge++	10	140	mag	earth	450			
+wpn_aerith_crimson_staff	Aerith	limited	Crimson Staff	TRUE	Crimson Florescence++	10	140	mag	nonelem	750			buff type=matkUp tier=3 range=allAllies; debuff type=mdefDown tier=3 range=allEnemies when=selfHpGe70
+wpn_aerith_gambanteinn	Aerith	crossover	Gambanteinn	TRUE	Paeon++	10	140		heal	5			buff type=patkUp tier=3 range=allAllies; buff type=atbGift range=allyExcludingSelf when=selfHpLe90; heal range=allAllies
+wpn_aerith_noblesse_rod	Aerith	event	Noblesse Rod	TRUE	Debravera Surge++	10	140	mag	nonelem	360			debuff type=patkDown tier=2
+wpn_aerith_team_leaders_bamboo_sword	Aerith	limited	Team Leader's Bamboo Sword	TRUE	Water Orb Blast++	10	140	mag	water	530	mult=1.4 when=selfHasBuff	spade|diamond	buff type=elemDmgUp elem=water tier=3 range=allAllies when=selfHpGe50; buff type=haste range=allAllies when=custom:spade&firstUse
+wpn_aerith_sea_dragon_staff	Aerith	event	Sea Dragon Staff	TRUE	Dewatera Surge++	10	140	mag	nonelem	360			debuff type=elemResistDown elem=water tier=2
+wpn_aerith_supreme_sages_staff	Aerith	crossover	Supreme Sage's Staff	TRUE	Magic Burst++	10	140	mag	nonelem	890	add=80000		buff type=exploitWeakness range=allAllies when=selfHpGe70; set type=allCure
+wpn_aerith_magatsuchi_rod	Aerith	event	Magatsuchi Rod	TRUE	Defaithra Surge++	10	140	mag	nonelem	360			debuff type=matkDown tier=2
+wpn_aerith_rousing_wizer_staff	Aerith	event	Rousing Wizer Staff	TRUE	Wizer Energy++	10	140	mag	heal	7			buff type=patkUp tier=3 range=allAllies; buff type=mdefUp tier=3 range=allAllies when=selfHpGe70; heal range=allAllies; set type=allCure
+wpn_aerith_lightnings_rod	Aerith	crossover	Lightning's Rod	TRUE	Enhancing Rose++	10	140	mag	heal	7		spade|diamond	buff type=magDmgBonus range=allAllies value=30; buff type=pdefUp tier=3 range=allAllies when=selfHpGe70; gauge type=limit range=allAllies when=firstUse; gauge type=limit range=self when=custom:spade; buff type=magicInterruptUp range=allAllies mode=passive when=custom:diamond; heal range=allAllies; set type=allCure
+wpn_aerith_staff_of_the_possessed	Aerith	crossover	Staff of the Possessed	TRUE	Ripping Twister++	10	140	phys	nonelem	920			buff type=elemWeaponBoost elem=water range=allAllies value=35; debuff type=elemResistDown elem=water tier=3 range=allEnemies when=selfHpGe70
+wpn_aerith_festive_rod	Aerith	limited	Festive Rod	TRUE	Planet's Prayer++	10	140	mag	heal	59		spade|diamond	buff type=physDmgBonus range=allAllies value=30; buff type=magDmgBonus range=allAllies value=30; gauge type=gearUses range=self when=custom:spade&firstUse; heal range=allAllies
+wpn_aerith_gorgeous_staff	Aerith	limited	Gorgeous Staff	TRUE	Luminous Bloom++	10	140	mag	nonelem	920		spade|diamond	buff type=elemDmgBonus elem=fire range=allAllies value=30; buff type=mdefUp tier=3 range=allAllies when=selfHpGe70; gauge type=gearUses range=self when=firstUse; buff type=elemWeaponBoost elem=fire range=allAllies when=custom:spade; buff type=elemInterruptUp elem=fire range=allAllies mode=passive when=custom:diamond
+wpn_red_xiii_sleek_collar	Red XIII	gacha	Sleek Collar	TRUE	Manaward A++	10	140	mag	heal	6			buff type=mdefUp tier=3 range=allAllies; heal range=allAllies
+wpn_red_xiii_gold_collar	Red XIII	gacha	Gold Collar	TRUE	Eternal Storm++	10	140	mag	nonelem	350			debuff type=mdefDown tier=2 range=allEnemies
+wpn_red_xiii_platinum_collar	Red XIII	gacha	Platinum Collar	TRUE	Therapeutic Touch++	10	140	mag	heal	11			buff type=regen range=allAllies; heal range=allAllies
+wpn_red_xiii_canyon_collar	Red XIII	gacha	Canyon Collar	TRUE	Canyon Gale++	10	140	mag	wind	500			debuff type=mdefDown tier=3 range=allEnemies when=selfHpGe50
+wpn_red_xiii_seaside_collar	Red XIII	gacha	Seaside Collar	TRUE	Power Fang++	10	140	phys	nonelem	510			debuff type=elemResistDown elem=lightning tier=3; buff type=regen range=self; set type=allCure
+wpn_red_xiii_junk_collar	Red XIII	gacha	Junk Collar	TRUE	Frenzied Fang++	10	140	phys	nonelem	510			debuff type=matkDown tier=3
+wpn_red_xiii_ivy_collar	Red XIII	gacha	Ivy Collar	TRUE	Growing Ivy++	10	140	phys	nonelem	420			debuff type=elemResistDown elem=fire tier=3; debuff type=elemResistDown elem=ice tier=3
+wpn_red_xiii_noble_collar	Red XIII	gacha	Noble Collar	TRUE	Waterga A++	10	140	mag	water	520			
+wpn_red_xiii_rubber_collar	Red XIII	gacha	Rubber Collar	TRUE	Mystic Flow++	10	140	mag	heal	113			heal range=singleAlly
+wpn_red_xiii_pilots_collar	Red XIII	gacha	Pilot's Collar	TRUE	Healing Howl++	10	140	mag	heal	59			buff type=mdefUp tier=3 range=allAllies; heal range=allAllies
+wpn_red_xiii_silver_collar	Red XIII	gacha	Silver Collar	TRUE	Rolling Claw++	10	140	phys	nonelem	320			debuff type=elemResistDown elem=wind tier=3; debuff type=elemResistDown elem=water tier=3 when=selfHpGe50; set type=allCure
+wpn_red_xiii_leather_collar	Red XIII	gacha	Leather Collar	TRUE	Sonic Fangs++	10	140	phys	nonelem	940			
+wpn_red_xiii_rage_collar	Red XIII	gacha	Rage Collar	TRUE	Blaze Rush++	10	140	phys	fire	750			
+wpn_red_xiii_brilliant_collar	Red XIII	limited	Brilliant Collar	TRUE	Brilliant Sault++	10	140	mag	heal	7		spade|diamond	buff type=matkUp tier=3 range=allAllies; buff type=elemDmgUp elem=wind tier=3 range=allAllies when=selfHpGe70; gauge type=limit range=self when=custom:spade; heal range=allAllies
+wpn_red_xiii_patissiers_collar	Red XIII	gacha	Patissier's Collar	TRUE	Whisking Claw++	10	140	phys	nonelem	920			debuff type=enfeeble range=allEnemies; buff type=magWeaponBoost range=allAllies when=selfHpGe70 value=35
+wpn_red_xiii_headphones	Red XIII	guild	Headphones	TRUE	Wild Howling++	10	140	mag	nonelem	540		diamond	debuff type=removeMdefUp range=allEnemies; buff type=healingBoost range=self mode=passive when=custom:diamond; buff type=elemMastery elem=fire range=allAllies mode=passive when=custom:diamond; set type=allCure
+wpn_red_xiii_iron_collar	Red XIII	event	Iron Collar	TRUE	Spiral Swing++	10	140	mag	nonelem	360			debuff type=pdefDown tier=2
+wpn_red_xiii_hell_house_collar	Red XIII	event	Hell House Collar	TRUE	Manara Breach Surge++	10	140	mag	nonelem	360			debuff type=mdefDown tier=2
+wpn_red_xiii_flame_dragons_band	Red XIII	event	Flame Dragon's Band	TRUE	Defira Surge++	10	140	mag	nonelem	360			debuff type=elemResistDown elem=fire tier=2
+wpn_red_xiii_egg_collar	Red XIII	event	Egg Collar	TRUE	Fira Surge A++	10	140	mag	fire	290			
+wpn_red_xiii_amethyst_collar	Red XIII	event	Amethyst Collar	TRUE	Blizzara Surge A++	10	140	mag	ice	290			
+wpn_red_xiii_steward_collar	Red XIII	event	Steward Collar	TRUE	Debravera Surge++	10	140	mag	nonelem	360			debuff type=patkDown tier=2
+wpn_red_xiii_kefkas_collar	Red XIII	event	Kefka's Collar	TRUE	Thundara Surge A++	10	140	mag	lightning	290			
+wpn_red_xiii_great_sabrecat_collar	Red XIII	event	Great Sabrecat Collar	TRUE	Wild Lightning++	10	140	mag	lightning	440			debuff type=pdefDown tier=2 range=allEnemies; debuff type=mdefDown tier=2 range=allEnemies
+wpn_red_xiii_pirate_collar	Red XIII	gacha	Pirate Collar	TRUE	Energy Wave++	10	140	mag	heal	59			buff type=matkUp tier=3 range=allAllies; buff type=elemDmgUp elem=lightning tier=3 range=allAllies when=selfHpGe70; gauge type=atb range=allyExcludingSelf when=selfHpLe90; heal range=allAllies
+wpn_red_xiii_tsviet_collar	Red XIII	event	Tsviet Collar	TRUE	Deaerora Surge A++	10	140	mag	nonelem	240			debuff type=elemResistDown elem=wind tier=2 range=allEnemies
+wpn_yuffie_arctic_star	Yuffie	gacha	Arctic Star	TRUE	Feisty Spirit++	10	140	mag	heal	13			buff type=patkUp tier=3 range=singleAlly; buff type=patkUp tier=3 range=self; heal range=singleAlly
+wpn_yuffie_4_point_shuriken	Yuffie	gacha	4-Point Shuriken	TRUE	Shuriken Throw++	10	140	phys	nonelem	350			debuff type=patkDown tier=2 range=allEnemies
+wpn_yuffie_pinwheel	Yuffie	gacha	Pinwheel	TRUE	Sweeping Spin++	10	140	phys	nonelem	510			debuff type=elemResistDown elem=ice tier=3
+wpn_yuffie_boomerang	Yuffie	gacha	Boomerang	TRUE	Flurry of Steel++	10	140	phys	nonelem	510			debuff type=elemResistDown elem=fire tier=3
+wpn_yuffie_twin_viper	Yuffie	gacha	Twin Viper	TRUE	Venomstrike++	10	140	phys	nonelem	510			debuff status=poison
+wpn_yuffie_razor_ring	Yuffie	gacha	Razor Ring	TRUE	Quaga A++	10	140	mag	earth	520			
+wpn_yuffie_magic_shuriken	Yuffie	gacha	Magic Shuriken	TRUE	Wind Ninjutsu++	10	140	phys	wind	520			
+wpn_yuffie_striped_moogle_float	Yuffie	gacha	Striped Moogle Float	TRUE	Explosion++	10	140	phys	fire	700			buff type=elemDmgUp elem=fire tier=3 range=self when=selfHpGe50
+wpn_yuffie_wind_slash	Yuffie	gacha	Wind Slash	TRUE	Nimble Wind Slash++	10	140	phys	nonelem	510			debuff type=elemResistDown elem=lightning tier=3
+wpn_yuffie_crystal_cross	Yuffie	gacha	Crystal Cross	TRUE	Stalwart Faith++	10	140	mag	heal	13			buff type=matkUp tier=3 range=singleAlly; buff type=regen range=singleAlly; heal range=singleAlly
+wpn_yuffie_diner_tray	Yuffie	gacha	Diner Tray	TRUE	Twister++	10	140	phys	wind	850			
+wpn_yuffie_little_red_wreath	Yuffie	gacha	Little Red Wreath	TRUE	Icebound++	10	140	mag	ice	940	mult=1.2 when=targetHasDebuff		
+wpn_yuffie_spiral_shuriken	Yuffie	gacha	Spiral Shuriken	TRUE	Ice Ninjutsu++	10	140	phys	ice	800			
+wpn_yuffie_hawkeye	Yuffie	gacha	Hawkeye	TRUE	Earth Ninjutsu++	10	140	phys	earth	850	mult=1.2 when=selfHpGe70	spade|diamond	debuff type=pdefDown tier=3 when=selfHpGe70 when=custom:spade; buff type=elemInterruptUp elem=earth range=allAllies mode=passive when=custom:diamond
+wpn_yuffie_holiday_bell	Yuffie	gacha	Holiday Bell	TRUE	Song of Wind++	10	140	mag	wind	620			debuff type=elemResistDown elem=wind tier=3; debuff type=mdefDown tier=3
+wpn_yuffie_watch_of_the_hunt	Yuffie	gacha	Watch of the Hunt	TRUE	Lightning Ninjutsu++	10	140	mag	lightning	540			debuff type=patkDown tier=3 range=allEnemies; buff type=pdefUp tier=3 range=allAllies when=selfHpGe70
+wpn_yuffie_rockers_guitar	Yuffie	gacha	Rocker's Guitar	TRUE	Freezing Riff++	10	140	mag	ice	600			buff type=exploitWeakness range=allAllies when=selfHpGe50 value=30; gauge type=command range=self
+wpn_yuffie_winged_chakram	Yuffie	gacha	Winged Chakram	TRUE	Rumbling Thunder Slash++	10	140	phys	lightning	1340			debuff type=pdefDown tier=3; buff type=elemDmgUp elem=lightning tier=3 range=allAllies when=selfHasBuff; gauge type=atb range=allAllies when=firstUse
+wpn_yuffie_bamboo_ring	Yuffie	guild	Bamboo Ring	TRUE	Baddies Begone++	10	140	phys	nonelem	500		diamond	
+wpn_yuffie_chariot_wheel	Yuffie	event	Chariot Wheel	TRUE	Watera Surge A++	10	140	mag	water	290			
+wpn_yuffie_leviathan_cutter	Yuffie	event	Leviathan Cutter	TRUE	Watera Surge++	10	140	mag	water	450			
+wpn_yuffie_cactuar_fan	Yuffie	event	Cactuar Fan	TRUE	Blizzara Surge A++	10	140	mag	ice	290			
+wpn_yuffie_bahamut_cutter	Yuffie	limited	Bahamut Cutter	TRUE	Razor Wings++	10	140	phys	nonelem	1080	mult=1.3 when=targetHasDebuff		buff type=mdefUp tier=3 range=allAllies
+wpn_yuffie_mallet_of_luck	Yuffie	event	Mallet of Luck	TRUE	Defira Surge A++	10	140	mag	nonelem	250			debuff type=elemResistDown elem=fire tier=2 range=allEnemies
+wpn_yuffie_bird_of_prey	Yuffie	crossover	Bird of Prey	TRUE	Raging Torrent++	10	140	phys	water	940			buff type=exploitWeakness range=self
+wpn_yuffie_risanautr	Yuffie	event	Risanautr	TRUE	Dequakera Surge++	10	140	mag	nonelem	360			debuff type=elemResistDown elem=earth tier=2
+wpn_yuffie_striped_moogle_flag	Yuffie	event	Striped Moogle Flag	TRUE	Defaithra Surge++	10	140	mag	nonelem	360			debuff type=matkDown tier=2
+wpn_yuffie_uber_4_point_shuriken	Yuffie	limited	Uber 4-Point Shuriken	TRUE	Great Sandstorm++	10	140	mag	earth	1340			buff type=elemDmgBonus elem=earth range=allAllies value=30
+wpn_yuffie_fatum_ex_machina	Yuffie	crossover	Fatum Ex Machina	TRUE	Circling Doom++	10	140	phys	nonelem	1340			debuff type=enfeeble; debuff type=patkDown tier=3; debuff type=elemResistDown elem=earth tier=3 when=selfHpGe70
+wpn_yuffie_heirloom_brush	Yuffie	limited	Heirloom Brush	TRUE	Calligraphy: Dawn++	10	140	mag	nonelem	1340			buff type=physAtbConservation range=self; buff type=magAtbConservation range=self; amp target=buff tier=1 maxTier=4 range=allAllies
+wpn_cait_blue_megaphone	Cait	gacha	Blue Megaphone	TRUE	Blizzaga A++	10	140	mag	ice	520			
+wpn_cait_battle_trumpet	Cait	gacha	Battle Trumpet	TRUE	Battle Drum++	10	140	phys	nonelem	350		spade|diamond	debuff type=matkDown tier=2 range=allEnemies; buff type=mdefUp tier=3 range=allAllies when=custom:spade&selfHpGe50; buff type=summonDmgUp range=allAllies mode=passive when=custom:diamond
+wpn_cait_green_megaphone	Cait	gacha	Green Megaphone	TRUE	Bloomin' Spray++	10	140	mag	water	620			debuff type=elemResistDown elem=water tier=3 when=selfHpGe50
+wpn_cait_marching_horn	Cait	gacha	Marching Horn	TRUE	Stalwart Bravery++	10	140	mag	heal	13			buff type=patkUp tier=3; buff type=regen; heal range=singleAlly
+wpn_cait_silver_megaphone	Cait	gacha	Silver Megaphone	TRUE	Spinning Punch++	10	140	phys	nonelem	510			debuff type=pdefDown tier=1
+wpn_cait_yellow_megaphone	Cait	gacha	Yellow Megaphone	TRUE	Sonic Meow++	10	140	phys	nonelem	700			
+wpn_cait_gold_megaphone	Cait	gacha	Gold Megaphone	TRUE	Fat Cat Attack++	10	140	phys	nonelem	510			debuff type=elemResistDown elem=fire tier=3
+wpn_cait_flower_vase	Cait	gacha	Flower Vase	TRUE	Hang in There++	10	140	mag	heal	13			buff type=matkUp tier=3; buff type=regen; buff type=haste; heal range=singleAlly
+wpn_cait_witchs_broom	Cait	gacha	Witch's Broom	TRUE	Tumbling Tackle++	10	140	phys	nonelem	420			debuff type=mdefDown tier=2; debuff type=elemResistDown elem=lightning tier=3 when=selfHpGe50
+wpn_cait_red_megaphone	Cait	gacha	Red Megaphone	TRUE	Firaga A++	10	140	mag	fire	520			
+wpn_cait_crystal_megaphone	Cait	gacha	Crystal Megaphone	TRUE	Instant Barrier++	10	140	mag	heal	13			buff type=pdefUp tier=3; buff type=regen; heal range=singleAlly
+wpn_cait_nocturne_horn	Cait	gacha	Nocturne Horn	TRUE	Meow Meow Typhoon++	10	140	mag	wind	780			debuff type=elemResistDown elem=wind tier=3 range=allEnemies; debuff type=mdefDown tier=3 range=allEnemies
+wpn_cait_trumpet_shell	Cait	guild	Trumpet Shell	TRUE	Shellmanship++	10	140	mag	heal	7		diamond	buff type=patkUp tier=2 range=allAllies; buff type=matkUp tier=2 range=allAllies; buff type=elemMastery elem=fire range=allAllies mode=passive when=custom:diamond; heal range=allAllies
+wpn_cait_humus_megaphone	Cait	event	Humus Megaphone	TRUE	Aerora Surge A++	10	140	mag	wind	290			
+wpn_cait_catsmegaphone	Cait	event	Catsmegaphone	TRUE	Solid Bravery++	10	140	mag	heal	13			buff type=patkUp tier=1; buff type=regen; heal range=singleAlly
+wpn_cait_fireworks_megaphone	Cait	event	Fireworks Megaphone	TRUE	Blizzara Surge A++	10	140	mag	ice	290			
+wpn_cait_quina_megaphone	Cait	crossover	Quina Megaphone	TRUE	Comforting Cuisine++	10	140		heal	7			buff type=patkUp tier=3 range=allAllies; buff type=pdefUp tier=3 range=allAllies when=selfHpGe70; heal range=allAllies
+wpn_cait_alba_megaphone	Cait	event	Alba Megaphone	TRUE	Ruinra Impact A++	10	140	phys	nonelem	390			
+wpn_cait_icebolt_megaphone	Cait	event	Icebolt Megaphone	TRUE	Deblizzara & Dethundara Surge++	10	140	mag	nonelem	340			debuff type=elemResistDown elem=ice tier=2; debuff type=elemResistDown elem=lightning tier=2
+wpn_cait_stilva_megaphone	Cait	event	Stilva Megaphone	TRUE	Deblizzara Surge A++	10	140	mag	nonelem	250			debuff type=elemResistDown elem=ice tier=1 range=allEnemies
+wpn_cait_spirit_demon_megaphone	Cait	event	Spirit Demon Megaphone	TRUE	Debravera Surge A++	10	140	mag	nonelem	250			debuff type=patkDown tier=1 range=allEnemies
+wpn_cait_cool_cats_megaphone	Cait	limited	Cool Cat's Megaphone	TRUE	Maiming Upper Cut++	10	140	phys	lightning	710			debuff type=enfeeble; buff type=patkUp tier=3 range=allAllies when=selfHpGe50
+wpn_cait_sable_megaphone	Cait	event	Sable Megaphone	TRUE	Quakera Surge A++	10	140	mag	earth	290			
+wpn_vincent_t03_model_n	Vincent	gacha	T03 Model N	TRUE	Quick Draw++	10	140	phys	nonelem	300	mult=3 when=selfHpLe30		gauge type=limit range=self
+wpn_vincent_s1976c	Vincent	gacha	S1976C	TRUE	Spellgun Shower++	10	140	mag	nonelem	540			debuff type=patkDown tier=3 range=allEnemies; debuff type=matkDown tier=3 range=allEnemies; gauge type=limit range=self
+wpn_vincent_shortbarrel	Vincent	gacha	Shortbarrel	TRUE	Stormround++	10	140	phys	wind	400	mult=3 when=selfHpEq100	spade|diamond	gauge type=limit range=self; debuff type=elemDmgDown elem=earth tier=3 when=custom:spade; amp target=buff tier=1 range=allAllies maxTier=4 when=custom:spade; buff type=elemInterruptUp elem=wind range=allAllies mode=passive when=custom:diamond
+wpn_vincent_double_stem_e	Vincent	gacha	Double Stem E	TRUE	Poison Sphere++	10	140	mag	nonelem	520			gauge type=limit range=self; debuff status=poison range=allEnemies when=selfHpLe30
+wpn_vincent_chiron	Vincent	gacha	Chiron	TRUE	Sageshot++	10	140	phys	nonelem	510			debuff type=elemResistDown elem=earth tier=3 when=selfHpGe50; gauge type=limit range=self
+wpn_vincent_cath_palug	Vincent	gacha	Cath Palug	TRUE	Blizzaga A++	10	140	mag	ice	520			
+wpn_vincent_quicksilver	Vincent	gacha	Quicksilver	TRUE	Spinning Pentashot++	10	140	phys	nonelem	750	mult=1.5 when=selfHpLe30		gauge type=limit range=self
+wpn_vincent_gilded_age	Vincent	gacha	Gilded Age	TRUE	Gilded Spirit++	10	140	mag	heal	13			gauge type=limit range=self; buff type=regen range=self; heal range=self
+wpn_vincent_hugin_munin	Vincent	gacha	Hugin & Munin	TRUE	Pentaburst Shot++	10	140	mag	nonelem	1300			gauge type=limit range=self
+wpn_vincent_crow_familiar	Vincent	gacha	Crow Familiar	TRUE	Shadow Swoop++	10	140	mag	lightning	940	mult=1.2 when=selfHasBuff		gauge type=limit range=self
+wpn_vincent_kugelblitz	Vincent	gacha	Kugelblitz	TRUE	Lightblast++	10	140	mag	nonelem	750			debuff type=mdefDown tier=3 range=allEnemies; buff type=elemDmgUp elem=earth tier=3 range=self when=selfHpGe70; gauge type=limit range=self
+wpn_vincent_holiday_garm	Vincent	gacha	Holiday Garm	TRUE	Hellhound Shot++	10	140	phys	fire	940	mult=1.2 when=targetHasDebuff		gauge type=limit range=self
+wpn_vincent_sawed_off_gs	Vincent	gacha	Sawed-Off GS	TRUE	Wardshot++	10	140	mag	heal	15			buff type=matkUp tier=3 range=self; buff type=mdefUp tier=3 range=self; gauge type=limit range=self; heal range=self
+wpn_vincent_galian_roar	Vincent	gacha	Galian Roar	TRUE	Chaos Claw++	10	140	mag	nonelem	800			debuff type=enfeeble; debuff type=mdefDown tier=3; buff type=matkUp tier=3 range=allAllies when=selfHpGe70
+wpn_vincent_transgressor	Vincent	gacha	Transgressor	TRUE	Turbulent Dharma++	10	140	phys	wind	1340			buff type=physWeaponBoost range=self value=30; buff type=exploitWeakness range=self when=selfHpGe70 value=30
+wpn_vincent_silver_rifle	Vincent	guild	Silver Rifle	TRUE	Gunspinner Shot++	10	140	phys	nonelem	700	mult=1.5 when=targetHasDebuff	diamond	gauge type=limit range=self; buff type=elemMastery elem=lightning range=allAllies mode=passive when=custom:diamond
+wpn_vincent_white_dog	Vincent	limited	White Dog	TRUE	Sludge Shot++	10	140	mag	earth	940	mult=1.2 when=targetHasDebuff		gauge type=limit range=self
+wpn_vincent_icebolt_shooter	Vincent	event	Icebolt Shooter	TRUE	Deblizzara & Dethundara Surge++	10	140	mag	nonelem	340			debuff type=elemResistDown elem=ice tier=2; debuff type=elemResistDown elem=lightning tier=2
+wpn_vincent_rhad_gun	Vincent	event	Rhad Gun	TRUE	Solid Bravery++	10	140	mag	heal	13			buff type=patkUp tier=1 range=singleAlly; buff type=regen range=singleAlly; heal range=singleAlly
+wpn_vincent_eligor_gun	Vincent	event	Eligor Gun	TRUE	Blizzara Surge A++	10	140	mag	ice	290			
+wpn_vincent_gun_of_the_worthy	Vincent	limited	Gun of the Worthy	TRUE	Frozen Strike++	10	140	phys	ice	1120			gauge type=limit range=self; debuff type=elemWeakness elem=ice when=firstUse value=50
+wpn_vincent_noblesse_automatic	Vincent	event	Noblesse Automatic	TRUE	Debravera Surge++	10	140	mag	nonelem	360			debuff type=patkDown tier=1
+wpn_vincent_electro_peashooter	Vincent	event	Electro Peashooter	TRUE	Thundara Surge A++	10	140	mag	lightning	290			
+wpn_vincent_merciless_white	Vincent	event	Merciless White	TRUE	Deaerora Surge A++	10	140	mag	nonelem	240			debuff type=elemResistDown elem=wind tier=1 range=allEnemies
+wpn_cid_scimitar	Cid	gacha	Scimitar	TRUE	Dragon's Spirit++	10	140	mag	heal	13			buff type=patkUp tier=3 range=singleAlly; buff type=matkUp tier=3 range=singleAlly; buff type=elemDmgUp elem=ice tier=3 range=singleAlly; heal range=singleAlly
+wpn_cid_pole_axe	Cid	gacha	Pole Axe	TRUE	Sharp Sonic++	10	140	phys	nonelem	540			debuff type=patkDown tier=3 range=allEnemies; debuff type=matkDown tier=3 range=allEnemies
+wpn_cid_partisan	Cid	gacha	Partisan	TRUE	Aeroga A++	10	140	mag	wind	520			
+wpn_cid_spear	Cid	gacha	Spear	TRUE	Quadspike++	10	140	phys	nonelem	750			debuff status=stop when=firstUse
+wpn_cid_trident	Cid	gacha	Trident	TRUE	Rising Harpoon++	10	140	phys	nonelem	620			debuff status=poison when=selfHpGe70; debuff status=stop when=firstUse
+wpn_cid_dragoon_lance	Cid	gacha	Dragoon Lance	TRUE		10	140	mag	lightning	670	mult=1.2 when=selfHasBuff		debuff type=elemResistDown elem=lightning tier=3 range=allEnemies
+wpn_cid_viper_halberd	Cid	gacha	Viper Halberd	TRUE	Imposing Stance++	10	140	mag	heal	15			buff type=pdefUp tier=3 range=self; buff type=mdefUp tier=3 range=self; heal range=self
+wpn_cid_radiant_lance	Cid	gacha	Radiant Lance	TRUE	Flying Spiral++	10	140	phys	nonelem	750			gauge type=command
+wpn_cid_slash_lance	Cid	gacha	Slash Lance	TRUE	Thunder Slam++	10	140	phys	nonelem	540			buff type=pdefUp tier=3 range=allAllies
+wpn_cid_flayer	Cid	gacha	Flayer	TRUE	Heavy Swing++	10	140	phys	nonelem	420			debuff status=stop range=singleEnemy when=firstUse
+wpn_cid_antler_pike	Cid	gacha	Antler Pike	TRUE	Holiday Spark++	10	140	phys	lightning	920			buff type=elemDmgBonus elem=lightning range=allAllies value=30; gauge type=atb range=allAllies when=firstUse
+wpn_cid_patissiers_spear	Cid	gacha	Patissier's Spear	TRUE	Icicle Candy++	10	140	phys	ice	920			debuff type=patkDown tier=3 range=singleEnemy; buff type=elemDmgBonus elem=ice range=allAllies when=selfHpGe70 value=30
+wpn_cid_grinding_gear	Cid	gacha	Grinding Gear	TRUE	Orbital Slice++	10	140	phys	earth	780			buff type=elemDmgUp elem=earth tier=3 range=allAllies; debuff type=enfeeble range=allEnemies when=selfHpGe50
+wpn_cid_mop	Cid	guild	Mop	TRUE	Cleaning Mop++	10	140	phys	nonelem	540			debuff status=stop range=allEnemies when=firstUse
+wpn_cid_rocket_lance	Cid	limited	Rocket Lance	TRUE	Cosmic Burst++	10	140	mag	nonelem	620			debuff type=enfeeble range=singleEnemy; debuff type=elemResistDown elem=ice tier=3 range=singleEnemy
+wpn_cid_odin_spear	Cid	event	Odin Spear	TRUE	Aerora Surge++	10	140	mag	wind	450			
+wpn_cid_lance_of_the_hunt	Cid	event	Lance of the Hunt	TRUE	Blizzara Surge A++	10	140	mag	ice	290			
+wpn_cid_captain_s_spear	Cid	event	Captain's Spear	TRUE	Armora Breach Surge++	10	140	mag	nonelem	360			debuff type=pdefDown tier=2 range=singleEnemy
+wpn_cid_festive_spear	Cid	event	Festive Spear	TRUE	Thundara Surge A++	10	140	mag	lightning	290			
+wpn_zack_black_whiskers	Zack	gacha	Black Whiskers	TRUE	Swirl Drop++	10	140	phys	nonelem	540			debuff type=pdefDown tier=2 range=singleEnemy; debuff type=elemResistDown elem=water tier=3 range=singleEnemy
+wpn_zack_falchion	Zack	gacha	Falchion	TRUE	Gale Blast++	10	140	phys	wind	520			
+wpn_zack_type99_longsword	Zack	gacha	Type-99 Longsword	TRUE	Rapid Slash++	10	140	phys	nonelem	750			
+wpn_zack_cutlass	Zack	gacha	Cutlass	TRUE	Destructive Swipe++	10	140	phys	nonelem	510			debuff type=pdefDown tier=3 range=singleEnemy
+wpn_zack_arc_sword	Zack	gacha	Arc Sword	TRUE	Homing Blast++	10	140	mag	nonelem	510			debuff type=mdefDown tier=3 range=singleEnemy
+wpn_zack_crystal_sword_z	Zack	gacha	Crystal Sword (Z)	TRUE	Firaga A++	10	140	mag	fire	520			
+wpn_zack_pressure_ridge	Zack	gacha	Pressure Ridge	TRUE		10	140	phys	ice	620			debuff type=elemResistDown elem=ice tier=3 range=singleEnemy when=selfHpGe50
+wpn_zack_enhanced_sword_z	Zack	gacha	Enhanced Sword (Z)	TRUE	Healing Vortex++	10	140	mag	heal	141			heal range=singleAlly
+wpn_zack_ceremonial_sword_z	Zack	gacha	Ceremonial Sword (Z)	TRUE		10	140	phys	nonelem	1400			buff type=patkUp tier=3 range=self
+wpn_zack_zweihander	Zack	gacha	Zweihander	TRUE	Slashing Thrust++	10	140	phys	nonelem	940			
+wpn_zack_defender	Zack	gacha	Defender	TRUE	Spirit Burst++	10	140	mag	heal	13			buff type=pdefUp tier=3 range=singleAlly; buff type=regen range=singleAlly; heal range=singleAlly
+wpn_zack_twinkling_star	Zack	gacha	Twinkling Star	TRUE	Dual Onslaught++	10	140	phys	nonelem	540			debuff type=matkDown tier=3 range=singleEnemy; debuff type=pdefDown tier=3 range=singleEnemy when=selfHpGe50; set type=allCure
+wpn_zack_surfer_blade	Zack	gacha	Surfer Blade	TRUE		10	140	phys	nonelem	740			debuff type=pdefDown tier=3 range=allEnemies; buff type=patkUp tier=3 range=allAllies when=selfHpGe70
+wpn_zack_sword_of_the_hunt	Zack	gacha	Sword of the Hunt	TRUE		10	140	mag	ice	800			buff type=exploitWeakness range=self when=selfHpGe50 value=35
+wpn_zack_battering_sword	Zack	gacha	Battering Sword	TRUE	X-Gale++	10	140	mag	wind	1340			buff type=elemDmgBonus elem=wind range=allAllies value=30
+wpn_zack_gelid_sword	Zack	gacha	Gelid Sword	TRUE		10	140	phys	ice	900			
+wpn_zack_beach_parasol	Zack	event	Beach Parasol	TRUE	Magic Ray++	10	140	mag	nonelem	560			
+wpn_zack_bouquet	Zack	guild	Bouquet	TRUE	Floral Flourish++	10	140	phys	nonelem	400	mult=3 when=selfHpEq100		
+wpn_zack_ifrit_s_sword	Zack	event	Ifrit's Sword	TRUE	Fira Surge++	10	140	mag	fire	450			
+wpn_zack_iron_greatsword	Zack	event	Iron Greatsword	TRUE		10	140	mag	nonelem	360			debuff type=pdefDown tier=2 range=singleEnemy
+wpn_zack_stream_guard	Zack	limited	Stream Guard	TRUE	Igniting Stream++	10	140	mag	fire	1020			debuff type=mdefDown tier=3 range=singleEnemy; buff type=matkUp tier=3 range=allAllies
+wpn_zack_carrot_sword	Zack	event	Carrot Sword	TRUE	Fira Surge A++	10	140	mag	fire	290			
+wpn_zack_zinogre_blade	Zack	crossover	Zinogre Blade	TRUE	Lightning Edge++	10	140	phys	lightning	940	mult=1.2 when=selfHpGe70		
+wpn_zack_beatrix_sword	Zack	crossover	Beatrix Sword	TRUE	Gale Slash++	10	140	phys	wind	1128			
+wpn_zack_alba_blade	Zack	event	Alba Blade	TRUE	Ruinra Impact A++	10	140	phys	nonelem	390			
+wpn_zack_buster_sword_origin	Zack	gacha	Buster Sword Origin	TRUE	High Braver++	10	140	phys	nonelem	860			
+wpn_zack_white_tree	Zack	event	White Tree	TRUE	Aerora Surge A++	10	140	mag	wind	290			
+wpn_zack_zenithian_sword	Zack	crossover	Zenithian Sword	TRUE	Big Banga Slash++	10	140	phys	fire	1120			debuff type=elemWeakness elem=fire range=singleEnemy; buff type=mdefUp tier=3 range=allAllies
+wpn_zack_magatsuchi_blade	Zack	event	Magatsuchi Blade	TRUE	Defaithra Surge++	10	140	mag	nonelem	360			debuff type=matkDown tier=2 range=singleEnemy
+wpn_zack_rousing_arc_sword	Zack	event	Rousing Arc Sword	TRUE	Shocksault++	10	140	phys	lightning	1080	mult=1.2 when=selfHpGe70		
+wpn_zack_virtuous_contract	Zack	event	Virtuous Contract	TRUE	Dequakera Surge A++	10	140	mag	nonelem	250			debuff type=elemResistDown elem=earth tier=2 range=allEnemies
+wpn_zack_festive_sword	Zack	limited	Festive Sword	TRUE	Planet's Lightwave++	10	140	mag	nonelem	1340			buff type=exploitWeakness range=allAllies value=40; buff type=enliven range=allAllies
+wpn_sephiroth_edged_wings	Sephiroth	gacha	Edged Wings	TRUE	Aerial Frostblade++	10	140	mag	ice	800			
+wpn_sephiroth_radiant_edge	Sephiroth	gacha	Radiant Edge	TRUE	Iai++	10	140	phys	nonelem	540			debuff type=pdefDown tier=2 range=singleEnemy; debuff type=elemResistDown elem=fire tier=3 range=singleEnemy when=selfHpGe50
+wpn_sephiroth_dark_heavens	Sephiroth	gacha	Dark Heavens	TRUE	Gale Strike++	10	140	phys	wind	800			
+wpn_sephiroth_aonibi	Sephiroth	gacha	Aonibi	TRUE	Frenzied Stance++	10	140	mag	heal	15			buff type=matkUp tier=3 range=self; buff type=regen range=self; heal range=self
+wpn_sephiroth_shinra_blade_model_i	Sephiroth	gacha	Shinra Blade: Model I	TRUE	Shock Blast++	10	140	mag	nonelem	940			
+wpn_sephiroth_nameless	Sephiroth	gacha	Nameless	TRUE	Telluric Fury++	10	140	phys	nonelem	240			debuff type=mdefDown tier=2 range=singleEnemy
+wpn_sephiroth_prototype_crimson_blade	Sephiroth	gacha	Prototype Crimson Blade	TRUE	Firaga A++	10	140	mag	fire	520			
+wpn_sephiroth_glaireid	Sephiroth	gacha	Glaireid	TRUE	Sweeping Slash++	10	140	phys	nonelem	650			
+wpn_sephiroth_tempest	Sephiroth	gacha	Tempest	TRUE		10	140	phys	water	700			debuff type=elemResistDown elem=water tier=3 range=singleEnemy when=selfHpGe50
+wpn_sephiroth_blue_bramble	Sephiroth	gacha	Blue Bramble	TRUE		10	140	mag	earth	700			debuff type=elemResistDown elem=earth tier=3 range=singleEnemy when=selfHpGe50
+wpn_sephiroth_mythril_type0_katana	Sephiroth	gacha	Mythril Type-0 Katana	TRUE	Steadfast Stance++	10	140	phys	heal	15			buff type=pdefUp tier=3 range=self; buff type=regen range=self; heal range=self
+wpn_sephiroth_northern_lights	Sephiroth	gacha	Northern Lights	TRUE	Radiant Aurora++	10	140	phys	nonelem	510			debuff type=patkDown tier=3 range=singleEnemy
+wpn_sephiroth_cc_alloy_sword	Sephiroth	gacha	CC Alloy Sword	TRUE	Thundaga A++	10	140	mag	lightning	520			
+wpn_sephiroth_shinra_military_sword	Sephiroth	gacha	Shinra Military Sword	TRUE		10	140	phys	nonelem	420			buff type=patkUp tier=2 range=self; buff type=elemDmgUp elem=wind tier=3 range=self when=selfHpGe50
+wpn_sephiroth_withering_blaze	Sephiroth	gacha	Withering Blaze	TRUE		10	140	mag	fire	700	mult=1.2 when=selfHasBuff		debuff type=elemResistDown elem=fire tier=3 range=singleEnemy when=selfHpGe50
+wpn_sephiroth_serrated_remiges	Sephiroth	gacha	Serrated Remiges	TRUE		10	140	mag	wind	1120			debuff type=enfeeble range=singleEnemy when=selfHpGe50
+wpn_sephiroth_immaculate_blade	Sephiroth	gacha	Immaculate Blade	TRUE	Sunder Earth++	10	140	phys	earth	900			debuff type=elemResistDown elem=earth tier=3 range=allEnemies
+wpn_sephiroth_infiltration_sword	Sephiroth	gacha	Infiltration Sword	TRUE		10	140	phys	water	1340			debuff type=pdefDown tier=3 range=singleEnemy; buff type=elemDmgUp elem=water tier=3 range=allAllies when=selfHasBuff; buff type=hpGain range=allAllies when=firstUse
+wpn_sephiroth_world_tree_bough	Sephiroth	guild	World Tree Bough	TRUE	Heavenly Grasp++	10	140	phys	nonelem	700	mult=1.5 when=stanceGaugeMax		
+wpn_sephiroth_torn_wing	Sephiroth	event	Torn Wing	TRUE	Solid Barrier++	10	140	mag	heal	13			buff type=pdefUp tier=3 range=singleAlly; heal range=singleAlly
+wpn_sephiroth_kuja_s_spirit_blade	Sephiroth	crossover	Kuja's Spirit Blade	TRUE		10	140	mag	nonelem	540			debuff type=matkDown tier=3 range=allEnemies; debuff type=patkDown tier=3 range=allEnemies when=selfHpGe50
+wpn_sephiroth_ashura	Sephiroth	event	Ashura	TRUE	Fira Surge A++	10	140	mag	fire	290			
+wpn_sephiroth_flame_dragon_blade	Sephiroth	event	Flame Dragon Blade	TRUE	Defira Surge++	10	140	mag	nonelem	360			debuff type=elemResistDown elem=fire tier=2 range=singleEnemy
+wpn_sephiroth_protector_s_blade	Sephiroth	limited	Protector's Blade	TRUE	Protector's Blow++	10	140	mag	nonelem	900	mult=1.3 when=singleTarget		debuff type=mdefDown tier=3 range=allEnemies
+wpn_sephiroth_shinra_wyvern_blade	Sephiroth	event	Shinra Wyvern Blade	TRUE	Defira Surge A++	10	140	mag	nonelem	250			debuff type=elemResistDown elem=fire tier=2 range=allEnemies
+wpn_sephiroth_edgar_s_coiled_blade	Sephiroth	crossover	Edgar's Coiled Blade	TRUE	Royal Shock++	10	140	mag	water	940	mult=1.2 when=targetHasDebuff		
+wpn_sephiroth_wintercrest_blade	Sephiroth	event	Wintercrest Blade	TRUE	Aerora Surge A++	10	140	mag	wind	290			
+wpn_sephiroth_humus_saber	Sephiroth	event	Humus Saber	TRUE	Deaerora Surge A++	10	140	mag	nonelem	240			debuff type=elemResistDown elem=wind tier=2 range=allEnemies
+wpn_sephiroth_blade_of_the_worthy	Sephiroth	limited	Blade of the Worthy	TRUE	Diving Scourge++	10	140	mag	nonelem	1010	add=40000 when=selfHpGe50		buff type=exploitWeakness range=self when=selfHpGe50 value=40
+wpn_sephiroth_folding_ruler	Sephiroth	event	Folding Ruler	TRUE	Armora Breach Surge A++	10	140	mag	nonelem	250			debuff type=pdefDown tier=2 range=allEnemies
+wpn_sephiroth_pandemonic_sword	Sephiroth	crossover	Pandemonic Sword	TRUE	Lightning Storm++	10	140	mag	lightning	800	mult=1.2 when=selfHpGe50		debuff type=patkDown tier=3 range=allEnemies; buff type=matkUp tier=3 range=allAllies when=selfHpGe50
+wpn_sephiroth_soba	Sephiroth	limited	Sōba	TRUE	Tearing Frost++	10	140	phys	ice	1340			buff type=elemWeaponBoost elem=ice range=allAllies value=35
+wpn_sephiroth_overture	Sephiroth	crossover	Overture	TRUE	Smite++	10	140	phys	water	1340			debuff type=pdefDown tier=3 range=singleEnemy; buff type=elemDmgUp elem=water tier=3 range=allAllies when=selfHasBuff; buff type=hpGain range=allAllies when=firstUse
+wpn_sephiroth_phoenix_odachi	Sephiroth	crossover	Phoenix Odachi	TRUE	Dark Manifestation++	10	140	mag	nonelem	1340			buff type=physWeaponBoost range=allAllies value=35; buff type=magWeaponBoost range=allAllies value=35; gauge type=atb range=self when=firstUse
+wpn_glenn_shockbuster	Glenn	gacha	Shockbuster	TRUE	Thundaga A++	10	140	mag	lightning	520			
+wpn_glenn_crewkicker	Glenn	gacha	Crewkicker	TRUE	Spinning Blaze++	10	140	phys	fire	750			
+wpn_glenn_rest_in_peace	Glenn	gacha	Rest in Peace	TRUE	Hell's Penalty++	10	140	phys	nonelem	750			
+wpn_glenn_apology_in_hell	Glenn	gacha	Apology in Hell	TRUE	Twin Hell++	10	140	phys	nonelem	940			
+wpn_glenn_jiggy_fam	Glenn	gacha	Jiggy Fam	TRUE	Quaga A++	10	140	mag	earth	520			
+wpn_glenn_personal_style	Glenn	gacha	Personal Style	TRUE	Mad Bull++	10	140	phys	nonelem	940			
+wpn_glenn_piece_of_cake	Glenn	gacha	Piece of Cake	TRUE	Dual Slash++	10	140	phys	nonelem	510			debuff type=pdefDown tier=3 range=singleEnemy
+wpn_glenn_pumpkin_lamppost	Glenn	gacha	Pumpkin Lamppost	TRUE	Stalwart Bravery++	10	140	mag	heal	13			buff type=patkUp tier=3 range=singleAlly; buff type=regen range=singleAlly; heal range=singleAlly
+wpn_glenn_hardcore_squad	Glenn	gacha	Hardcore Squad	TRUE	Good Vibes++	10	140	mag	heal	9			buff type=pdefUp tier=2 range=allAllies; buff type=mdefUp tier=2 range=allAllies; heal range=allAllies
+wpn_glenn_ultimatic	Glenn	gacha	Ultimatic	TRUE	Skullknocker++	10	140	phys	nonelem	1040			
+wpn_glenn_slay_the_day	Glenn	gacha	Slay the Day	TRUE		10	140	phys	nonelem	420			debuff type=pdefDown tier=2 range=singleEnemy; buff type=elemDmgUp elem=water tier=3 range=self when=selfHpGe50
+wpn_glenn_blade_of_ruin	Glenn	gacha	Blade of Ruin	TRUE		10	140	phys	ice	940			buff type=provoke range=self; gauge type=command range=singleAlly
+wpn_glenn_pirates_glaive	Glenn	gacha	Pirate's Glaive	TRUE		10	140	phys	nonelem	800			buff type=provoke range=self; buff type=veil range=self; buff type=hpGain range=allAllies
+wpn_glenn_desperado_glaive	Glenn	gacha	Desperado Glaive	TRUE		10	140	phys	earth	620			debuff type=patkDown tier=3 range=singleEnemy; debuff type=elemResistDown elem=earth tier=3 range=singleEnemy when=selfHpGe70; buff type=veil range=self
+wpn_glenn_patissiers_glaive	Glenn	gacha	Patissier's Glaive	TRUE	Baked Chocolate Rush++	10	140	mag	fire	920			debuff type=elemResistDown elem=fire tier=3 range=singleEnemy; buff type=matkUp tier=3 range=allAllies; buff type=veil range=self
+wpn_glenn_garish_greatblade	Glenn	gacha	Garish Greatblade	TRUE		10	140	mag	ice	920			debuff type=enfeeble range=singleEnemy; debuff type=matkDown tier=3 range=singleEnemy; buff type=mdefUp tier=3 range=allAllies when=selfHpGe70
+wpn_glenn_squeaky_hammer	Glenn	guild	Squeaky Hammer	TRUE	Crushing Jump++	10	140	phys	nonelem	700	mult=2 when=selfHpLe30		
+wpn_glenn_thousand_waves	Glenn	event	Thousand Waves	TRUE	Magic Ray++	10	140	mag	nonelem	560			
+wpn_glenn_inferno_grave	Glenn	event	Inferno Grave	TRUE	Fira Surge++	10	140	mag	fire	450			
+wpn_glenn_steiner_s_blade	Glenn	event	Steiner's Blade	TRUE	Power Break++	10	140	phys	nonelem	360			debuff type=pdefDown tier=2 range=singleEnemy
+wpn_glenn_best_wishes	Glenn	event	Best Wishes	TRUE	Armora Breach Surge++	10	140	mag	nonelem	360			debuff type=pdefDown tier=2 range=singleEnemy
+wpn_glenn_stream_slasher	Glenn	limited	Stream Slasher	TRUE	Flooding Stream++	10	140	phys	water	900			debuff type=pdefDown tier=3 range=singleEnemy
+wpn_glenn_silver_sol_buster	Glenn	event	Silver Sol Buster	TRUE	Fire Surge A++	10	140	mag	fire	290			
+wpn_glenn_radglaive	Glenn	event	Radglaive	TRUE	Watera Surge A++	10	140	mag	water	290			
+wpn_glenn_stilva_glaive	Glenn	event	Stilva Glaive	TRUE	Deblizzara Surge A++	10	140	mag	nonelem	250			debuff type=elemResistDown elem=ice tier=2 range=allEnemies
+wpn_glenn_set_square	Glenn	event	Set Square	TRUE	Armora Breach Surge A++	10	140	mag	nonelem	250			debuff type=pdefDown tier=2 range=allEnemies
+wpn_glenn_snow_s_bardiche	Glenn	crossover	Snow's Bardiche	TRUE	Chaos Geyser++	10	140	mag	ice	920			debuff type=enfeeble range=singleEnemy; debuff type=matkDown tier=3 range=singleEnemy; buff type=mdefUp tier=3 range=allAllies when=selfHpGe70
+wpn_glenn_revenant_mother_s_glaive	Glenn	event	Revenant Mother's Glaive	TRUE		10	140						
+wpn_matt_prime_number	Matt	gacha	Prime Number	TRUE	Healing Showers++	10	140	mag	heal	74			heal range=allAllies
+wpn_matt_centipede	Matt	gacha	Centipede	TRUE		10	140	mag	heal	59			buff type=pdefUp tier=3 range=allAllies; heal range=allAllies
+wpn_matt_core_defender	Matt	gacha	Core Defender	TRUE	Amulet Tribute++	10	140	mag	heal	7			buff type=mdefUp tier=3 range=allAllies; heal range=allAllies
+wpn_matt_espee_rapiere_nextg	Matt	gacha	Espee Rapiere Next-G	TRUE	First Aid++	10	140	mag	heal	148			heal range=singleAlly
+wpn_matt_broadsword_axis	Matt	gacha	Broadsword: Axis	TRUE	Shoot & Slash++	10	140	phys	nonelem	900			
+wpn_matt_slick_beetle	Matt	gacha	Slick Beetle	TRUE	X-Shot++	10	140	phys	nonelem	480			debuff type=patkDown tier=3 range=singleEnemy
+wpn_matt_orthodox_raven	Matt	gacha	Orthodox Raven	TRUE	Waterga A++	10	140	mag	water	540			
+wpn_matt_stingray	Matt	gacha	Stingray	TRUE	Core Sting++	10	140	mag	nonelem	540			debuff type=mdefDown tier=3 range=singleEnemy
+wpn_matt_absolute_royal	Matt	gacha	Absolute Royal	TRUE	Snowstorm++	10	140	mag	ice	540			
+wpn_matt_luminary_sword	Matt	gacha	Luminary Sword	TRUE		10	140	mag	heal	7			buff type=matkUp tier=3 range=allAllies; buff type=elemDmgUp elem=fire tier=3 range=allAllies when=selfHpGe70; heal range=allAllies; set type=allCure
+wpn_matt_syringe_rapier	Matt	gacha	Syringe Rapier	TRUE		10	140	mag	heal	7			buff type=mdefUp tier=3 range=allAllies; buff type=pdefUp tier=3 range=allAllies when=selfHpGe50; heal range=allAllies; set type=allCure
+wpn_matt_bramble_spine	Matt	gacha	Bramble Spine	TRUE		10	140	mag	heal	13			buff type=patkUp tier=3 range=singleAlly; buff type=regen range=singleAlly; heal range=singleAlly; set type=allCure
+wpn_matt_killer_hornet	Matt	gacha	Killer Hornet	TRUE		10	140	phys	nonelem	720			
+wpn_matt_nautilus_spiral	Matt	gacha	Nautilus Spiral	TRUE		10	140	phys	nonelem	420			debuff type=elemResistDown elem=ice tier=3 range=singleEnemy; debuff type=elemResistDown elem=lightning tier=3 range=singleEnemy when=selfHpGe50; set type=allCure
+wpn_matt_desperado_rapier	Matt	gacha	Desperado Rapier	TRUE	Green Repose++	10	140	mag	heal	59			buff type=elemResistUp elem=lightning tier=3 range=allAllies; buff type=elemResistUp elem=wind tier=3 range=allAllies; buff type=patkUp tier=3 range=allAllies when=selfHpGe70; heal range=allAllies
+wpn_matt_physicians_scalpel	Matt	gacha	Physician's Scalpel	TRUE		10	140	mag	heal	47			buff type=patkUp tier=3 range=allAllies; buff type=mdefUp tier=3 range=allAllies when=selfHpGe70; heal range=allAllies
+wpn_matt_foam_sword	Matt	guild	Foam Sword	TRUE	Swing++	10	140	phys	nonelem	620			set type=allCure
+wpn_matt_holiday_cane	Matt	event	Holiday Cane	TRUE	Quakera Surge A++	10	140	mag	earth	290			
+wpn_matt_bahamut_rapier	Matt	event	Bahamut Rapier	TRUE	Ruinra Surge++	10	140	mag	nonelem	450			
+wpn_matt_giant_fork	Matt	event	Giant Fork	TRUE	Solid Bravery++	10	140	mag	heal	13			buff type=patkUp tier=2 range=singleAlly; buff type=regen range=singleAlly; heal range=singleAlly; set type=allCure
+wpn_matt_humus_rapier	Matt	event	Humus Rapier	TRUE	Aerora Surge A++	10	140	mag	wind	290			
+wpn_matt_firefish	Matt	event	Firefish	TRUE	Fira Impact++	10	140	phys	fire	450			
+wpn_matt_candle_rapier	Matt	event	Candle Rapier	TRUE	Thundara Surge A++	10	140	mag	lightning	290			
+wpn_matt_hrotti	Matt	event	Hrotti	TRUE	Dequakera Surge++	10	140	mag	nonelem	360			debuff type=elemResistDown elem=earth tier=2 range=singleEnemy
+wpn_matt_deroplatys	Matt	limited	Deroplatys	TRUE	Mending Wave++	10	140	mag	heal	47			buff type=patkUp tier=3 range=allAllies; buff type=mdefUp tier=3 range=allAllies when=selfHpGe70; heal range=allAllies; set type=allEsuna
+wpn_matt_dragontail_sword	Matt	event	Dragontail Sword	TRUE	Debravera Surge++	10	140	mag	nonelem	360			debuff type=patkDown tier=2 range=singleEnemy
+wpn_lucia_nightjar	Lucia	gacha	Nightjar	TRUE		10	140	mag	nonelem	420			debuff type=pdefDown tier=3 range=singleEnemy; debuff type=mdefDown tier=2 range=singleEnemy when=selfHasBuff
+wpn_lucia_bald_eagle	Lucia	gacha	Bald Eagle	TRUE		10	140	phys	nonelem	540			debuff type=elemResistDown elem=ice tier=3 range=singleEnemy
+wpn_lucia_mad_minute	Lucia	gacha	Mad Minute	TRUE	Barrage++	10	140	phys	nonelem	540			debuff type=matkDown tier=3 range=singleEnemy
+wpn_lucia_ssr1976	Lucia	gacha	SSR1976	TRUE	Stalwart Manaward++	10	140	mag	heal	13			buff type=mdefUp tier=3 range=singleAlly; heal range=singleAlly
+wpn_lucia_holiday_revolver	Lucia	gacha	Holiday Revolver	TRUE		10	140	mag	earth	800			
+wpn_lucia_pulse_gun	Lucia	gacha	Pulse Gun	TRUE	Aeroga A++	10	140	mag	wind	500			
+wpn_lucia_serpent_eater	Lucia	gacha	Serpent Eater	TRUE	Hydroshot++	10	140	phys	water	790			
+wpn_lucia_rose_musket	Lucia	gacha	Rose Musket	TRUE		10	140	mag	fire	620			debuff type=mdefDown tier=3 range=singleEnemy when=selfHpGe50
+wpn_lucia_black_rifle	Lucia	gacha	Black Rifle	TRUE	Quietude++	10	140	phys	nonelem	790			debuff status=silence range=singleEnemy
+wpn_lucia_tranquilizer_gun	Lucia	gacha	Tranquilizer Gun	TRUE	Potion Volley++	10	140	mag	heal	163			buff type=removePoison range=self; buff type=removeBlind range=self; heal range=self
+wpn_lucia_v39	Lucia	gacha	V39	TRUE	Pineapple Shot++	10	140	phys	nonelem	690			
+wpn_lucia_marine_shooter	Lucia	gacha	Marine Shooter	TRUE		10	140	phys	nonelem	560			debuff type=patkDown tier=3 range=allEnemies; debuff type=elemResistDown elem=fire tier=3 range=allEnemies when=selfHpGe50
+wpn_lucia_rifle_of_the_hunt	Lucia	gacha	Rifle of the Hunt	TRUE		10	140	phys	earth	620			debuff type=elemResistDown elem=earth tier=3 range=singleEnemy; debuff type=pdefDown tier=3 range=singleEnemy when=selfHpGe50
+wpn_lucia_thunderbird	Lucia	gacha	Thunderbird	TRUE		10	140	mag	lightning	540			debuff type=mdefDown tier=3 range=singleEnemy
+wpn_lucia_barn_swallow	Lucia	gacha	Barn Swallow	TRUE	Striking Quintet++	10	140	phys	nonelem	790			
+wpn_lucia_desperado_rifle	Lucia	gacha	Desperado Rifle	TRUE	Frozen Prism++	10	140	phys	ice	780			debuff type=pdefDown tier=3 range=allEnemies; buff type=elemDmgUp elem=ice tier=3 range=allAllies when=selfHpGe70
+wpn_lucia_killer_falcon	Lucia	gacha	Killer Falcon	TRUE	Explosive Bullets++	10	140	mag	fire	920			buff type=elemWeaponBoost elem=fire range=allAllies value=35; buff type=hpGain range=allAllies when=firstUse
+wpn_lucia_rubber_band_gun	Lucia	guild	Rubber Band Gun	TRUE	Parading Shot++	10	140	phys	nonelem	620			gauge type=command
+wpn_lucia_rifle_of_levin	Lucia	event	Rifle of Levin	TRUE	Thundara Surge++	10	140	mag	lightning	420			
+wpn_lucia_pumpkin_blaster	Lucia	event	Pumpkin Blaster	TRUE	Solid Manaward++	10	140	mag	heal	13			buff type=mdefUp tier=3 range=singleAlly; heal range=singleAlly
+wpn_lucia_vivi_s_magical_gun	Lucia	event	Vivi's Magical Gun	TRUE	Fira Surge A++	10	140	mag	fire	290			
+wpn_lucia_featherscatter	Lucia	event	Featherscatter	TRUE	Debravera Surge++	10	140	mag	nonelem	360			debuff type=patkDown tier=2 range=singleEnemy
+wpn_lucia_eligor_rifle	Lucia	event	Eligor Rifle	TRUE	Blizzara Surge A++	10	140	mag	ice	290			
+wpn_lucia_spirit_demon_rifle	Lucia	event	Spirit Demon Rifle	TRUE	Debravera Surge A++	10	140	mag	nonelem	250			debuff type=patkDown tier=2 range=allEnemies
+wpn_lucia_shinra_ceremonial_rifle	Lucia	limited	Shinra Ceremonial Rifle	TRUE	Napalm Assault++	10	140	phys	fire	840			debuff type=enfeeble range=singleEnemy; buff type=elemDmgUp elem=fire tier=3 range=allAllies when=selfHpGe50; gauge type=atb range=allAllies when=firstUse
+wpn_angeal_gargantuan_monolith	Angeal	gacha	Gargantuan Monolith	TRUE		10	140	mag	heal	15			buff type=provoke range=self; buff type=mdefUp tier=3 range=self; heal range=self
+wpn_angeal_shinra_greatsword_model_i	Angeal	gacha	Shinra Greatsword: Model I	TRUE	Shock Slash++	10	140	phys	nonelem	620			debuff type=elemResistDown elem=earth tier=3 range=singleEnemy; buff type=veil range=self
+wpn_angeal_greatsword_a	Angeal	gacha	Greatsword (A)	TRUE	Crushing Swing++	10	140	phys	nonelem	540			debuff type=pdefDown tier=3 range=allEnemies; buff type=veil range=self
+wpn_angeal_stalwart_integrity	Angeal	gacha	Stalwart Integrity	TRUE	Fortress Guard++	10	140	mag	heal	7			buff type=pdefUp tier=3 range=allAllies; buff type=patkUp tier=3 range=allAllies when=selfHpGe70; heal range=allAllies
+wpn_angeal_type90_longsword	Angeal	gacha	Type-90 Longsword	TRUE	Rapid Blade++	10	140	phys	nonelem	750			buff type=provoke range=self; buff type=regen range=self
+wpn_angeal_cc_alloy_greatsword	Angeal	gacha	CC Alloy Greatsword	TRUE	Thundaga Burst++	10	140	mag	lightning	900			
+wpn_angeal_sequoiadendron	Angeal	gacha	Sequoiadendron	TRUE		10	140	phys	earth	1200			
+wpn_angeal_type91_twohander	Angeal	gacha	Type-91 Two-Hander	TRUE	Flash Thrust++	10	140	mag	nonelem	420			debuff type=patkDown tier=3 range=singleEnemy; debuff type=matkDown tier=2 range=singleEnemy when=selfHpGe50
+wpn_angeal_innocent_warrior	Angeal	gacha	Innocent Warrior	TRUE		10	140	mag	fire	520			
+wpn_angeal_volcanic_heat	Angeal	gacha	Volcanic Heat	TRUE		10	140	phys	fire	620			debuff type=elemResistDown elem=fire tier=3 range=singleEnemy when=selfHpGe50; buff type=veil range=self
+wpn_angeal_inflatable_buster_sword	Angeal	gacha	Inflatable Buster Sword	TRUE		10	140	phys	nonelem	640			debuff type=elemWeakness elem=water range=allEnemies value=30; buff type=provoke range=self; buff type=pdefUp tier=3 range=allAllies when=selfHpGe70
+wpn_angeal_mythril_slasher	Angeal	gacha	Mythril Slasher	TRUE		10	140	mag	water	580			debuff type=elemResistDown elem=water tier=3 range=allEnemies; buff type=provoke range=self
+wpn_angeal_ghost_ensis	Angeal	gacha	Ghost Ensis	TRUE		10	140	mag	earth	780			debuff type=elemResistDown elem=earth tier=3 range=allEnemies; buff type=elemDmgUp elem=earth tier=3 range=allAllies
+wpn_angeal_orchard_shovel	Angeal	guild	Orchard Shovel	TRUE	Good Harvest++	10	140	phys	nonelem	1470			buff type=provoke range=self
+wpn_angeal_tranquility	Angeal	limited	Tranquility	TRUE	Smashing Splash++	10	140	phys	water	940			buff type=provoke range=self; buff type=veil range=self
+wpn_angeal_cyan_s_blade	Angeal	event	Cyan's Blade	TRUE	Blizzara Impact++	10	140	phys	ice	450			
+wpn_angeal_turks_blade	Angeal	event	Turks' Blade	TRUE	Debravera Surge A++	10	140	mag	nonelem	250			debuff type=patkDown tier=2 range=allEnemies
+wpn_angeal_titan_blade	Angeal	event	Titan Blade	TRUE	Quakera Surge++	10	140	mag	earth	450			
+wpn_angeal_penance_blade	Angeal	event	Penance Blade	TRUE	Fira Surge A++	10	140	mag	fire	290			
+wpn_angeal_greatsword_of_the_worthy	Angeal	limited	Greatsword of the Worthy	TRUE	Shield of the Mighty++	10	140	mag	heal	7			buff type=pdefUp tier=3 range=allAllies; buff type=mdefUp tier=3 range=allAllies; buff type=veil range=allAllies; heal range=allAllies
+wpn_angeal_blade_of_the_hunt	Angeal	event	Blade of the Hunt	TRUE		10	140	mag	ice	290			
+wpn_angeal_lightning_s_sword	Angeal	event	Lightning's Sword	TRUE		10	140	phys	nonelem	700			debuff type=patkDown tier=3 range=singleEnemy; buff type=pdefUp tier=3 range=allAllies
+wpn_seph_og_masamune	Seph OG	gacha	Masamune	TRUE	Telluric Fury++	10	140	phys	nonelem	800	add=60000		debuff type=pdefDown tier=3 range=singleEnemy; debuff type=mdefDown tier=3 range=singleEnemy
+wpn_seph_og_kotetsu	Seph OG	gacha	Kotetsu	TRUE	Hell's Dominion++	10	140	phys	nonelem	540			debuff type=patkDown tier=3 range=allEnemies; debuff type=matkDown tier=3 range=allEnemies
+wpn_seph_og_osafune	Seph OG	gacha	Osafune	TRUE	White Horses++	10	140	mag	water	1340			buff type=matkUp tier=3 range=allAllies
+wpn_seph_og_shiranui	Seph OG	limited	Shiranui	TRUE	Scarlet Inferno++	10	140	mag	fire	1340			buff type=elemDmgBonus elem=fire range=allAllies value=30
+wpn_seph_og_kikuichimonji	Seph OG	limited	Kikuichimonji	TRUE	Shadow Disaster++	10	140	mag	nonelem	1340			buff type=physDmgBonus range=allAllies value=30; buff type=magDmgBonus range=allAllies value=30; buff type=haste range=self when=firstUse
+wpn_seph_og_divine_steed_blade	Seph OG	event	Divine Steed Blade	TRUE	Quakera Surge A++	10	140	mag	earth	290			
+wpn_seph_og_muramasa	Seph OG	limited	Muramasa	TRUE	Flash of Ruin++	10	140	mag	nonelem	1340			debuff type=singleTgtPhysDmgRcvdUp range=allEnemies value=50; debuff type=singleTgtMagDmgRcvdUp range=allEnemies value=50; buff type=hpGain range=allAllies when=firstUse
+wpn_seph_og_starsoul_blade	Seph OG	limited	Starsoul Blade	TRUE	Planet's Purple Lightning++	10	140	mag	lightning	1340			debuff type=mdefDown tier=3 range=singleEnemy; buff type=magWeaponBoost range=allAllies value=35
+wpn_seph_og_omega_wing	Seph OG	gacha	Omega Wing	TRUE		10	140						
+gear_aerith_rosy_battle_suit	Aerith	gear	Rosy Battle Suit	TRUE									set type=boostHEAL value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_aerith_sunny_robe	Aerith	gear	Sunny Robe	TRUE									set type=boostHP value=10 mode=passive; set type=boostMATK value=10 mode=passive
+gear_aerith_the_slum_s_flower_girl	Aerith	gear	The Slum's Flower Girl	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostMDEF value=4 mode=passive
+gear_aerith_prism_dress	Aerith	gear	Prism Dress	TRUE									set type=boostMATK value=5 mode=passive; set type=elemArcanum elem=wind value=35 mode=passive
+gear_aerith_chocobo_suit	Aerith	gear	Chocobo Suit	TRUE									set type=boostHP value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_barret_avalanche_leader	Barret	gear	Avalanche Leader	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostPDEF value=4 mode=passive
+gear_barret_fiery_cape	Barret	gear	Fiery Cape	TRUE									set type=boostHP value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_barret_scrap_armor	Barret	gear	Scrap Armor	TRUE									set type=boostPATK value=10 mode=passive; set type=boostATK value=10 mode=passive
+gear_cloud_battlefiend_garb	Cloud	gear	Battlefiend Garb	TRUE									set type=boostHP value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_cloud_ex_soldier_first_class	Cloud	gear	Ex-SOLDIER: First Class	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostPDEF value=4 mode=passive
+gear_cloud_maritime_sailor	Cloud	gear	Maritime Sailor	TRUE									set type=boostHP value=10 mode=passive; set type=elemArcanum elem=water value=20 mode=passive
+gear_cloud_murasame_battle_garb	Cloud	gear	Murasame Battle Garb	TRUE	Ultra Thunderstrike			phys	lightning	2000			set type=boostPATK value=10 mode=passive; set type=elemArcanum elem=lightning value=35 mode=passive
+gear_cloud_bandaged_coat	Cloud	gear	Bandaged Coat	TRUE									set type=boostHP value=10 mode=passive; set type=boostHEAL value=10 mode=passive
+gear_glenn_cake_breaker	Glenn	gear	Cake Breaker	TRUE									set type=boostATK value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_glenn_doom_dodger	Glenn	gear	Doom Dodger	TRUE									set type=boostHP value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_glenn_unprecedented_p0_soldier	Glenn	gear	Unprecedented P0 SOLDIER	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostPDEF value=4 mode=passive
+gear_lucia_black_stealth	Lucia	gear	Black Stealth	TRUE									set type=boostPATK value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_lucia_disciplined_p0_soldier	Lucia	gear	Disciplined P0 SOLDIER	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostPDEF value=4 mode=passive
+gear_lucia_marksqueen	Lucia	gear	Marksqueen	TRUE									set type=boostATK value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_matt_elite_uniform	Matt	gear	Elite Uniform	TRUE									set type=boostHEAL value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_matt_intellectual_p0_soldier	Matt	gear	Intellectual P0 SOLDIER	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostMDEF value=4 mode=passive
+gear_matt_professor	Matt	gear	Professor	TRUE									set type=boostATK value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_matt_killer_attire	Matt	gear	Killer Attire	TRUE	Ultra Killing Slash			phys	nonelem	1000			gauge type=atb range=allyExcludingSelf; set type=boostHP value=10 mode=passive; set type=boostPATK value=10 mode=passive
+gear_red_xiii_hojo_s_specimen	Red XIII	gear	Hojo's Specimen	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostMDEF value=4 mode=passive
+gear_red_xiii_rubber_harness	Red XIII	gear	Rubber Harness	TRUE									set type=boostHEAL value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_red_xiii_seaside_aloha	Red XIII	gear	Seaside Aloha	TRUE									set type=boostHP value=10 mode=passive; set type=boostPATK value=10 mode=passive
+gear_sephiroth_edged_wings_training_garb	Sephiroth	gear	Edged Wings Training Garb	TRUE									set type=boostMATK value=10 mode=passive; set type=elemArcanum elem=ice value=35 mode=passive
+gear_sephiroth_aeroglider	Sephiroth	gear	Aeroglider	TRUE									set type=boostATK value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_sephiroth_shinra_s_hero	Sephiroth	gear	Shinra's Hero	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostPDEF value=4 mode=passive
+gear_sephiroth_dark_harbinger	Sephiroth	gear	Dark Harbinger	TRUE									set type=boostHP value=10 mode=passive; set type=elemArcanum elem=wind value=20 mode=passive
+gear_tifa_lifeguard	Tifa	gear	Lifeguard	TRUE									set type=boostHP value=10 mode=passive; set type=boostHEAL value=10 mode=passive
+gear_tifa_metalfoot	Tifa	gear	Metalfoot	TRUE									set type=boostATK value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_tifa_seventh_heaven_bartender	Tifa	gear	Seventh Heaven Bartender	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostPDEF value=4 mode=passive
+gear_zack_soldier_second_class_future_hero	Zack	gear	SOLDIER: Second Class Future Hero	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostPDEF value=4 mode=passive
+gear_zack_tropical_beach	Zack	gear	Tropical Beach	TRUE									set type=boostHP value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_zack_valiant_suit	Zack	gear	Valiant Suit	TRUE									set type=boostATK value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_zack_black_hound	Zack	gear	Black Hound	TRUE									set type=boostHP value=15 mode=passive; set type=boostPATK value=15 mode=passive
+gear_glenn_pumpkinmare	Glenn	gear	Pumpkinmare	TRUE									set type=boostHP value=15 mode=passive; set type=boostPATK value=15 mode=passive
+gear_cloud_zidane_s_outfit	Cloud	gear	Zidane's Outfit	TRUE									set type=boostHP value=15 mode=passive; set type=physAbilityMastery value=15 mode=passive
+gear_lucia_vivi_s_garb	Lucia	gear	Vivi's Garb	TRUE									set type=boostHP value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_aerith_garnet_s_gown	Aerith	gear	Garnet's Gown	TRUE									set type=boostHP value=15 mode=passive; set type=boostHEAL value=10 mode=passive
+gear_sephiroth_kuja_s_attire	Sephiroth	gear	Kuja's Attire	TRUE									set type=boostHP value=15 mode=passive; set type=magAbilityMastery value=15 mode=passive
+gear_tifa_fairy_of_the_holy_flame	Tifa	gear	Fairy of the Holy Flame	TRUE									set type=boostPATK value=10 mode=passive; set type=elemArcanum elem=ice value=35 mode=passive
+gear_lucia_holiday_coat	Lucia	gear	Holiday Coat	TRUE	Ultra Rock Blast			mag	earth	1000			debuff type=elemResistDown elem=earth tier=3 range=singleEnemy; set type=boostMATK value=10 mode=passive; set type=elemArcanum elem=earth value=35 mode=passive
+gear_aerith_fairy_of_snowfall	Aerith	gear	Fairy of Snowfall	TRUE									set type=boostHP value=10 mode=passive; set type=elemArcanum elem=ice value=20 mode=passive
+gear_zack_holiday_suit	Zack	gear	Holiday Suit	TRUE									set type=boostHP value=10 mode=passive; set type=physAbilityMastery value=10 mode=passive
+gear_cloud_official_festive_garb	Cloud	gear	Official Festive Garb	TRUE									set type=boostPATK value=10 mode=passive; set type=elemArcanum elem=fire value=35 mode=passive
+gear_sephiroth_celebratory_garb	Sephiroth	gear	Celebratory Garb	TRUE									set type=boostHP value=15 mode=passive; set type=elemArcanum elem=fire value=20 mode=passive
+gear_yuffie_amazing_materia_hunter	Yuffie	gear	Amazing Materia Hunter	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostPDEF value=4 mode=passive
+gear_yuffie_puckish_lion	Yuffie	gear	Puckish Lion	TRUE									set type=boostPATK value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_yuffie_winter_moogle	Yuffie	gear	Winter Moogle	TRUE									set type=boostHP value=10 mode=passive; set type=buffDebuffExtension value=10 mode=passive
+gear_red_xiii_canyon_duds	Red XIII	gear	Canyon Duds	TRUE	Ultra Canyon Gale			mag	wind	700			debuff type=elemResistDown elem=wind tier=3 range=allEnemies; set type=boostHP value=10 mode=passive; set type=regenBoost value=60 mode=passive
+gear_yuffie_sparkling_skater	Yuffie	gear	Sparkling Skater	TRUE									set type=boostPATK value=5 mode=passive; set type=elemArcanum elem=wind value=35 mode=passive
+gear_aerith_floral_gown	Aerith	gear	Floral Gown	TRUE									set type=boostHP value=10 mode=passive; set type=buffDebuffExtension value=10 mode=passive
+gear_tifa_guide_uniform	Tifa	gear	Guide Uniform	TRUE									set type=boostPATK value=15 mode=passive; set type=physAbilityMastery value=15 mode=passive
+gear_red_xiii_the_hellhound	Red XIII	gear	The Hellhound	TRUE	Ultra Hellfang			phys	nonelem	1000			debuff type=singleTgtPhysDmgRcvdUp range=singleEnemy; set type=boostHP value=10 mode=passive; set type=elemArcanum elem=fire value=15 mode=passive; set type=elemArcanum elem=ice value=15 mode=passive
+gear_zack_shinra_full_dress_uniform	Zack	gear	Shinra Full Dress Uniform	TRUE									set type=boostHP value=10 mode=passive; set type=buffDebuffExtension value=15 mode=passive
+gear_cloud_saber_style	Cloud	gear	Saber Style	TRUE									set type=boostPATK value=5 mode=passive; set type=elemArcanum elem=ice value=35 mode=passive
+gear_glenn_vanguard_style	Glenn	gear	Vanguard Style	TRUE									set type=boostPATK value=5 mode=passive; set type=elemArcanum elem=water value=35 mode=passive
+gear_sephiroth_lethal_style	Sephiroth	gear	Lethal Style	TRUE									set type=boostHP value=10 mode=passive; set type=magAbilityMastery value=15 mode=passive
+gear_zack_guardian_style	Zack	gear	Guardian Style	TRUE									set type=boostMATK value=5 mode=passive; set type=elemArcanum elem=fire value=35 mode=passive
+gear_aerith_classic_coney	Aerith	gear	Classic Coney	TRUE									set type=elemArcanum elem=fire value=35 mode=passive; set type=magAbilityMastery value=15 mode=passive
+gear_lucia_gothic_bunny	Lucia	gear	Gothic Bunny	TRUE									set type=elemArcanum elem=fire value=15 mode=passive; set type=elemArcanum elem=ice value=15 mode=passive; set type=buffDebuffExtension value=15 mode=passive
+gear_tifa_bunny_bustier	Tifa	gear	Bunny Bustier	TRUE									set type=elemArcanum elem=water value=35 mode=passive; set type=magAbilityMastery value=10 mode=passive
+gear_cait_self_professed_fortune_teller	Cait	gear	Self-Professed Fortune-Teller	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostMDEF value=4 mode=passive
+gear_cait_marching_jacket	Cait	gear	Marching Jacket	TRUE									set type=boostHP value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_cait_party_jacket	Cait	gear	Party Jacket	TRUE									set type=critPotArcanum value=50 mode=passive; set type=buffDebuffExtension value=15 mode=passive
+gear_barret_electroarmor	Barret	gear	Electroarmor	TRUE	Ultra Energization			mag	lightning	700			buff type=pdefUp tier=3 range=allAllies; set type=boostHP value=15 mode=passive; set type=boostATKAll value=10 mode=passive; set type=boostMDEFAll value=10 mode=passive
+gear_tifa_feather_style	Tifa	gear	Feather Style	TRUE									set type=boostHP value=10 mode=passive; set type=buffDebuffExtensionPlus value=60 mode=passive
+gear_zack_glacier_armor	Zack	gear	Glacier Armor	TRUE									set type=elemArcanum elem=ice value=35 mode=passive; set type=buffDebuffExtension value=10 mode=passive
+gear_yuffie_shinobi_hawk	Yuffie	gear	Shinobi Hawk	TRUE	Ultra Earth Ninjutsu			phys	earth	2000			set type=elemArcanum elem=earth value=35 mode=passive; set type=physAbilityMastery value=10 mode=passive
+gear_matt_aidman_s_white_coat	Matt	gear	Aidman's White Coat	TRUE									set type=boostHP value=15 mode=passive; set type=boostHEAL value=10 mode=passive
+gear_sephiroth_shinra_formal_uniform	Sephiroth	gear	Shinra Formal Uniform	TRUE									set type=elemArcanum elem=wind value=20 mode=passive; set type=buffDebuffExtension value=10 mode=passive
+gear_cloud_glavenus_armor	Cloud	gear	Glavenus Armor	TRUE									set type=boostPATK value=10 mode=passive; set type=physAbilityMastery value=15 mode=passive
+gear_zack_zinogre_armor	Zack	gear	Zinogre Armor	TRUE									set type=elemArcanum elem=lightning value=35 mode=passive; set type=physAbilityMastery value=10 mode=passive
+gear_tifa_kirin_suit	Tifa	gear	Kirin Suit	TRUE									set type=elemArcanum elem=lightning value=35 mode=passive; set type=magAbilityMastery value=10 mode=passive
+gear_aerith_kamura_dress	Aerith	gear	Kamura Dress	TRUE									set type=boostHEAL value=10 mode=passive; set type=buffDebuffExtensionPlus value=60 mode=passive
+gear_sephiroth_natant_jacket	Sephiroth	gear	Natant Jacket	TRUE									set type=elemArcanum elem=water value=35 mode=passive; set type=buffDebuffExtension value=10 mode=passive
+gear_yuffie_summer_moogle	Yuffie	gear	Summer Moogle	TRUE									set type=physMagWard value=5 mode=passive; set type=elemArcanum elem=fire value=35 mode=passive
+gear_lucia_beach_agent	Lucia	gear	Beach Agent	TRUE									set type=physMagWard value=5 mode=passive; set type=buffDebuffExtensionPlus value=60 mode=passive
+gear_tifa_passion_mermaid	Tifa	gear	Passion Mermaid	TRUE									set type=physMagWard value=5 mode=passive; set type=elemArcanum elem=fire value=35 mode=passive
+gear_vincent_stray_dog	Vincent	gear	Stray Dog	TRUE									set type=elemArcanum elem=earth value=35 mode=passive
+gear_vincent_mournful_former_turk	Vincent	gear	Mournful Former Turk	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostMDEF value=4 mode=passive
+gear_vincent_bouncer_suit	Vincent	gear	Bouncer Suit	TRUE									set type=boostATK value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_cait_felyne_kamura_garb	Cait	gear	Felyne Kamura Garb	TRUE									set type=boostPATK value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_aerith_citric_dress	Aerith	gear	Citric Dress	TRUE									set type=physMagWard value=5 mode=passive; set type=magAbilityMastery value=15 mode=passive
+gear_vincent_formal_attire	Vincent	gear	Formal Attire	TRUE	Ultra Pentaburst Shot			mag	nonelem	2000			buff type=matkUp tier=3 range=allAllies; set type=physMagWard value=5 mode=passive; set type=magAbilityMastery value=15 mode=passive
+gear_sephiroth_dark_attire	Sephiroth	gear	Dark Attire	TRUE									set type=physMagWard value=5 mode=passive; set type=elemArcanum elem=earth value=35 mode=passive
+gear_lucia_entrapment_gown	Lucia	gear	Entrapment Gown	TRUE	Ultra Nightglint			mag	nonelem	1000			gauge type=limit range=allyExcludingSelf; set type=boostATKAll value=10 mode=passive; set type=boostMDEFAll value=10 mode=passive
+gear_cloud_bahamut_garb	Cloud	gear	Bahamut Garb	TRUE									set type=boostATKAll value=5 mode=passive; set type=physAbilityMastery value=10 mode=passive; set type=uniqueDamageBoost value=5 mode=passive
+gear_yuffie_bahamut_mantle	Yuffie	gear	Bahamut Mantle	TRUE									set type=boostATKAll value=5 mode=passive; set type=physAbilityMastery value=10 mode=passive; set type=uniqueDamageBoost value=5 mode=passive
+gear_tifa_bahamut_suit	Tifa	gear	Bahamut Suit	TRUE									set type=boostMDEFAll value=10 mode=passive; set type=magAbilityMastery value=10 mode=passive; set type=uniqueDamageBoost value=5 mode=passive
+gear_aerith_bahamut_robe	Aerith	gear	Bahamut Robe	TRUE									set type=uniqueDamageBoost value=5 mode=passive
+gear_vincent_crowmaster_suit	Vincent	gear	Crowmaster Suit	TRUE									set type=physMagWard value=5 mode=passive; set type=elemArcanum elem=lightning value=35 mode=passive
+gear_cait_pumpkin_jacket	Cait	gear	Pumpkin Jacket	TRUE									set type=physMagWard value=5 mode=passive; set type=buffDebuffExtension value=10 mode=passive
+gear_yuffie_nanaki_mantle	Yuffie	gear	Nanaki Mantle	TRUE									set type=physMagWard value=5 mode=passive; set type=elemArcanum elem=ice value=35 mode=passive
+gear_angeal_honorable_training_garb	Angeal	gear	Honorable Training Garb	TRUE									set type=elemArcanum elem=water value=35 mode=passive
+gear_angeal_shinra_expedition_wear	Angeal	gear	Shinra Expedition Wear	TRUE									set type=boostHP value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_angeal_genial_soldier_second_class	Angeal	gear	Genial SOLDIER: Second Class	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostPDEF value=4 mode=passive
+gear_red_xiii_pilot_s_jacket	Red XIII	gear	Pilot's Jacket	TRUE									set type=boostHEAL value=15 mode=passive; set type=buffDebuffExtension value=10 mode=passive
+gear_angeal_cyan_s_attire	Angeal	gear	Cyan's Attire	TRUE									set type=boostHP value=8 mode=passive; set type=boostPDEF value=8 mode=passive
+gear_aerith_terra_s_garb	Aerith	gear	Terra's Garb	TRUE									set type=buffDebuffExtension value=10 mode=passive
+gear_sephiroth_edgar_s_attire	Sephiroth	gear	Edgar's Attire	TRUE									set type=elemArcanum elem=water value=35 mode=passive
+gear_cloud_locke_s_outfit	Cloud	gear	Locke's Outfit	TRUE									set type=physAbilityMastery value=15 mode=passive
+gear_tifa_sabin_s_style	Tifa	gear	Sabin's Style	TRUE									set type=physAbilityMastery value=15 mode=passive
+gear_yuffie_holiday_cheer_reindeer	Yuffie	gear	Holiday Cheer Reindeer	TRUE	Ultra Song of Wind			mag	wind	2000			set type=elemMastery elem=wind value=15 mode=passive; set type=elemArcanum elem=wind value=35 mode=passive
+gear_vincent_holiday_formal_wear	Vincent	gear	Holiday Formal Wear	TRUE	Ultra Hellhound Shot			phys	fire	2000			set type=elemMastery elem=fire value=15 mode=passive; set type=elemArcanum elem=fire value=35 mode=passive
+gear_matt_holiday_helper	Matt	gear	Holiday Helper	TRUE	Ultra Luminary Glow			mag	heal	10			buff type=mdefUp tier=3 range=allAllies
+gear_cloud_holiday_outfit	Cloud	gear	Holiday Outfit	TRUE	Ultra Twister Blade			mag	wind	2000			set type=elemMastery elem=wind value=15 mode=passive; set type=elemArcanum elem=wind value=35 mode=passive
+gear_cloud_new_year_s_battle_garb	Cloud	gear	New Year's Battle Garb	TRUE									set type=boostHP value=10 mode=passive; set type=elemArcanum elem=fire value=15 mode=passive; set type=elemArcanum elem=ice value=15 mode=passive
+gear_tifa_festive_blue_daffodil_attire	Tifa	gear	Festive Blue Daffodil Attire	TRUE									set type=elemArcanum elem=fire value=30 mode=passive; set type=elemArcanum elem=ice value=30 mode=passive; set type=elemArcanum elem=lightning value=30 mode=passive; set type=elemArcanum elem=water value=30 mode=passive; set type=elemArcanum elem=wind value=30 mode=passive; set type=elemArcanum elem=earth value=30 mode=passive
+gear_aerith_festive_crimson_attire	Aerith	gear	Festive Crimson Attire	TRUE									set type=physMagWard value=10 mode=passive; set type=reprieve value=20 mode=passive
+gear_vincent_devil_gunner_s_coat	Vincent	gear	Devil Gunner's Coat	TRUE									set type=buffDebuffExtension value=10 mode=passive
+gear_glenn_training_garb_of_ruin	Glenn	gear	Training Garb of Ruin	TRUE	Ultra Frost Slash			phys	ice	1000			buff type=veil range=self; set type=physMagWard value=10 mode=passive; set type=elemArcanum elem=ice value=35 mode=passive
+gear_cid_astronaut	Cid	gear	Astronaut	TRUE									set type=boostATKAll value=10 mode=passive; set type=boostMDEFAll value=10 mode=passive
+gear_cid_sky_loving_pilot	Cid	gear	Sky-Loving Pilot	TRUE									set type=boostPDEF value=4 mode=passive; set type=boostPDEF value=4 mode=passive
+gear_cid_flying_captain	Cid	gear	Flying Captain	TRUE									set type=boostHP value=8 mode=passive; set type=boostMDEF value=8 mode=passive
+gear_aerith_loveless_songstress	Aerith	gear	Loveless Songstress	TRUE									set type=reprieve value=10 mode=passive; set type=buffDebuffExtensionPlus value=40 mode=passive
+gear_yuffie_wutai_s_idol	Yuffie	gear	Wutai's Idol	TRUE	Ultra Raging Torrent			phys	water	2000			buff type=elemDmgUp elem=water tier=3 range=allAllies; debuff type=elemResistDown elem=water tier=3 range=singleEnemy; set type=elemMastery elem=water value=15 mode=passive; set type=elemArcanum elem=water value=35 mode=passive
+gear_barret_dragon_king_varvados	Barret	gear	Dragon King Varvados	TRUE	Ultra Dragon's Roar			phys	nonelem	1000			
+gear_zack_soldier_first_class_future_hero	Zack	gear	SOLDIER: First Class Future Hero	TRUE									set type=boostHP value=10 mode=passive; set type=boostATK value=10 mode=passive
+gear_cloud_mystic_coat	Cloud	gear	Mystic Coat	TRUE									set type=buffDebuffExtensionPlus value=60 mode=passive
+gear_sephiroth_cape_of_the_worthy	Sephiroth	gear	Cape of the Worthy	TRUE									set type=elemArcanum elem=fire value=30 mode=passive; set type=elemArcanum elem=ice value=30 mode=passive; set type=elemArcanum elem=lightning value=30 mode=passive; set type=elemArcanum elem=water value=30 mode=passive; set type=elemArcanum elem=wind value=30 mode=passive; set type=elemArcanum elem=earth value=30 mode=passive
+gear_vincent_coat_of_the_worthy	Vincent	gear	Coat of the Worthy	TRUE									set type=elemArcanum elem=ice value=30 mode=passive; set type=physAbilityMastery value=20 mode=passive; set type=uniqueDamageBoost value=10 mode=passive
+gear_tifa_armor_of_the_worthy	Tifa	gear	Armor of the Worthy	TRUE									set type=elemArcanum elem=earth value=30 mode=passive; set type=physAbilityMastery value=20 mode=passive; set type=uniqueDamageBoost value=10 mode=passive
+gear_angeal_garb_of_the_worthy	Angeal	gear	Garb of the Worthy	TRUE									
+gear_zack_rabbit_butler	Zack	gear	Rabbit Butler	TRUE									set type=boostHP value=10 mode=passive; set type=elemArcanum elem=fire value=30 mode=passive; set type=elemArcanum elem=ice value=30 mode=passive; set type=elemArcanum elem=lightning value=30 mode=passive; set type=elemArcanum elem=water value=30 mode=passive
+gear_zack_festive_jacket	Zack	gear	Festive Jacket	TRUE	Ultra Planet's Lightwave			mag	nonelem	2000			amp target=debuff tier=1 maxTier=4 range=allEnemies
+gear_cid_dark_flyer	Cid	gear	Dark Flyer	TRUE	Ultra Spark Stick			mag	lightning	1500			set type=elemArcanum elem=lightning value=30 mode=passive; set type=magAbilityMastery value=20 mode=passive
+gear_lucia_dealer_s_tailcoat	Lucia	gear	Dealer's Tailcoat	TRUE									set type=elemArcanum elem=earth value=30 mode=passive; set type=physAbilityMastery value=20 mode=passive
+gear_yuffie_bunny_apron	Yuffie	gear	Bunny Apron	TRUE									
+gear_cait_cool_cat_s_jacket	Cait	gear	Cool Cat's Jacket	TRUE									set type=physAbilityMastery value=10 mode=passive; set type=magAbilityMastery value=10 mode=passive; set type=buffDebuffExtensionPlus value=40 mode=passive
+gear_tifa_seventh_high_school_uniform	Tifa	gear	Seventh High School Uniform	TRUE									set type=boostHP value=10 mode=passive; set type=elemArcanum elem=wind value=30 mode=passive; set type=magAbilityMastery value=20 mode=passive
+gear_barret_seventh_high_athletic_gear	Barret	gear	Seventh High Athletic Gear	TRUE	Ultra Winds of Discipline			phys	wind	1000			buff type=elemResistUp elem=earth tier=3 range=allAllies; buff type=provoke range=self; set type=boostHP value=10 mode=passive; set type=elemArcanum elem=wind value=30 mode=passive; set type=magAbilityMastery value=20 mode=passive
+gear_aerith_seventh_high_team_cetra_uniform	Aerith	gear	Seventh High Team Cetra Uniform	TRUE	Ultra Water Orb Blast			mag	water	1000			debuff type=mdefDown tier=3 range=allEnemies; debuff type=pdefDown tier=3 range=allEnemies; set type=boostHP value=10 mode=passive; set type=elemArcanum elem=water value=30 mode=passive; set type=magAbilityMastery value=20 mode=passive
+gear_glenn_pirate_captain	Glenn	gear	Pirate Captain	TRUE									set type=physMagWard value=10 mode=passive
+gear_sephiroth_custom_suit	Sephiroth	gear	Custom Suit	TRUE									set type=boostHP value=10 mode=passive; set type=elemArcanum elem=wind value=30 mode=passive; set type=magAbilityMastery value=20 mode=passive
+gear_matt_dark_night_robe	Matt	gear	Dark Night Robe	TRUE									set type=reprieve value=10 mode=passive
+gear_yuffie_rocker_outfit	Yuffie	gear	Rocker Outfit	TRUE									set type=physMagWard value=15 mode=passive; set type=elemArcanum elem=ice value=30 mode=passive; set type=magAbilityMastery value=20 mode=passive
+gear_cloud_rider_style	Cloud	gear	Rider Style	TRUE									set type=physMagWard value=15 mode=passive; set type=elemArcanum elem=ice value=30 mode=passive; set type=magAbilityMastery value=20 mode=passive
+uw_cloud_ultimate_buster_sword	Cloud	ultimate	Ultimate Buster Sword	TRUE	Ult. Braver		140	hybrid	nonelem	1000			debuff type=patkDown tier=3 range=singleEnemy; debuff type=matkDown tier=3 range=singleEnemy
+uw_cloud_ragnarok	Cloud	ultimate	Ragnarok	TRUE	Heaven's Twilight		140	hybrid	nonelem	2000			buff type=ampPhysAbilities range=self value=40; buff type=ampMagAbilities range=self value=40; gauge type=atb range=allAllies
+uw_barret_ultimate_gatling_gun	Barret	ultimate	Ultimate Gatling Gun	TRUE	Ult. Agitation		140		heal	5			buff type=pdefUp tier=3 range=allAllies; heal range=allAllies
+uw_barret_missing_score	Barret	ultimate	Missing Score	TRUE	Guardian Aura		140		heal	5			buff type=physResistUp range=allAllies; buff type=magResistUp range=allAllies; heal range=allAllies
+uw_tifa_ultimate_leather_gloves	Tifa	ultimate	Ultimate Leather Gloves	TRUE	Tornado Shot		140	hybrid	nonelem	1000			buff type=patkUp tier=2 range=allAllies; buff type=matkUp tier=2 range=allAllies
+uw_tifa_premium_heart	Tifa	ultimate	Premium Heart	TRUE	Ravaging Axe Kick		140	hybrid	nonelem	2000			buff type=haste range=self
+uw_tifa_dragon_claw	Tifa	ultimate	Dragon Claw	TRUE	Dragon Momentum		140	hybrid	nonelem	2000			buff type=physWeaponBoost range=self value=60; buff type=magWeaponBoost range=self value=60; buff type=haste range=allAllies
+uw_aerith_ultimate_guard_stick	Aerith	ultimate	Ultimate Guard Stick	TRUE	Fos Temenos		140		heal	50			heal range=allAllies; buff type=regen range=allAllies; buff type=removePatkDown range=allAllies; buff type=removeMatkDown range=allAllies
+uw_aerith_princess_guard	Aerith	ultimate	Princess Guard	TRUE	Jubilation		140	mag	heal	30			heal range=allAllies; gauge type=atb range=allAllies
+uw_aerith_abraxas	Aerith	ultimate	Abraxas	TRUE	Viridian Torrent		140	hybrid	nonelem	1000			amp target=debuff tier=2 maxTier=4 range=allEnemies; buff type=haste range=allAllies
+uw_red_xiii_ultimate_leather_collar	Red XIII	ultimate	Ultimate Leather Collar	TRUE	Ult. Therapeutic Touch		140	mag	heal	27			heal range=allAllies; buff type=regen range=allAllies
+uw_red_xiii_limited_moon	Red XIII	ultimate	Limited Moon	TRUE	Entelechial Echo		140	mag	heal	110			heal range=allAllies; buff type=exploitWeakness range=allAllies
+uw_red_xiii_brisingamen	Red XIII	ultimate	Brisingamen	TRUE	Evoking Howl		140	hybrid	nonelem	1000			debuff status=torpor range=allEnemies; gauge type=gearUses range=allAllies; gauge type=atb range=allAllies
+uw_yuffie_ultimate_4_point_shuriken	Yuffie	ultimate	Ultimate 4-Point Shuriken	TRUE	Euphoric Dance		140	hybrid	nonelem	1000			buff type=patkUp tier=3 range=self; buff type=matkUp tier=3 range=self
+uw_yuffie_conformer	Yuffie	ultimate	Conformer	TRUE	Ferocity		140	hybrid	nonelem	2000			debuff type=pdefDown tier=3 range=singleEnemy; debuff type=mdefDown tier=3 range=singleEnemy; gauge type=atb range=self
+uw_yuffie_rising_sun	Yuffie	ultimate	Rising Sun	TRUE	Ambient Radiance		140	hybrid	nonelem	2000			buff type=exploitWeakness range=self value=60; gauge type=atb range=allAllies
+uw_cait_ultimate_yellow_megaphone	Cait	ultimate	Ultimate Yellow Megaphone	TRUE	Super Spirit		140	mag	heal	5			gauge type=limit range=singleAlly; heal range=singleAlly
+uw_cait_hp_shout	Cait	ultimate	HP Shout	TRUE	Heavenly Cheer		140	hybrid	nonelem	1000			buff type=haste range=allAllies
+uw_vincent_ultimate_quicksilver	Vincent	ultimate	Ultimate Quicksilver	TRUE	Ult. Spinning Pentashot		140	hybrid	nonelem	1000			gauge type=limit range=self
+uw_vincent_death_penalty	Vincent	ultimate	Death Penalty	TRUE	Invisible Shot		140	hybrid	nonelem	2000			buff type=ampPhysAbilities range=allAllies; buff type=ampMagAbilities range=allAllies; gauge type=limit range=self
+uw_vincent_fomalhaut	Vincent	ultimate	Fomalhaut	TRUE	Bestial Burst		140	hybrid	nonelem	2000			buff type=physDmgBonus range=self; buff type=magDmgBonus range=self; buff type=haste range=allAllies; gauge type=limit range=self
+uw_cid_ultimate_spear	Cid	ultimate	Ultimate Spear	TRUE	Ult. Dragon's Spirit		140	mag	heal	5			gauge type=limit range=singleAlly; buff type=patkUp tier=3 range=singleAlly; heal range=singleAlly
+uw_cid_venus_gospel	Cid	ultimate	Venus Gospel	TRUE	Call & Response		140	hybrid	nonelem	2000			buff type=physWeaponBoost range=allAllies; buff type=magWeaponBoost range=allAllies; gauge type=atb range=allAllies
+uw_zack_ultimate_type_99_longsword	Zack	ultimate	Ultimate Type-99 Longsword	TRUE	Ult. Slashing Thrust		140	hybrid	nonelem	1000			debuff type=pdefDown tier=3 range=singleEnemy; debuff type=mdefDown tier=3 range=singleEnemy
+uw_zack_durandal	Zack	ultimate	Durandal	TRUE	Ray Blade		140	hybrid	nonelem	2000			gauge type=atb range=self; buff type=patkUp tier=3 range=self; buff type=matkUp tier=3 range=self
+uw_zack_divine_emissary	Zack	ultimate	Divine Emissary	TRUE	Glorious Blade		140	hybrid	nonelem	2000			amp target=buff tier=2 maxTier=4 range=allAllies; gauge type=summon range=allAllies; gauge type=atb range=allAllies
+uw_sephiroth_ultimate_nameless	Sephiroth	ultimate	Ultimate Nameless	TRUE	Ult. Sweeping Slash		140	hybrid	nonelem	1500	mult=2 when=targetHasDebuff		
+uw_sephiroth_genji_blade	Sephiroth	ultimate	Genji Blade	TRUE	Flash of Steel		140	hybrid	nonelem	2000			buff type=patkUp tier=4 range=self; buff type=matkUp tier=4 range=self
+uw_sephiroth_metsumato	Sephiroth	ultimate	Metsumato	TRUE	Evilbane		140	hybrid	nonelem	2000			buff type=physAtbConservation range=self; buff type=magAtbConservation range=self; gauge type=atb range=allAllies
+uw_glenn_ultimate_personal_style	Glenn	ultimate	Ultimate Personal Style	TRUE	Fire Up		140	mag	heal	5			buff type=mdefUp tier=3 range=allAllies; heal range=allAllies
+uw_glenn_ogrekiller	Glenn	ultimate	Ogrekiller	TRUE	Finishing Blow		140	hybrid	nonelem	2000			buff type=provoke range=self; buff type=physResistUp range=self; buff type=magResistUp range=self; buff type=regen range=self
+uw_matt_ultimate_broadsword_axis	Matt	ultimate	Ultimate Broadsword: Axis	TRUE	Ult. Healing Showers		140	mag	heal	25			heal range=allAllies; buff type=regen range=allAllies; buff type=removePdefDown range=allAllies; buff type=removeMdefDown range=allAllies
+uw_matt_gladius	Matt	ultimate	Gladius	TRUE	Essence Diffusion		140	mag	heal	40			heal range=allAllies; buff type=haste range=allAllies; buff type=ampHealing range=self
+uw_lucia_ultimate_v39	Lucia	ultimate	Ultimate V39	TRUE	Boost Volley		140	mag	heal	5			buff type=patkUp tier=3 range=singleAlly; buff type=matkUp tier=3 range=singleAlly; heal range=singleAlly
+uw_lucia_aldebaran	Lucia	ultimate	Aldebaran	TRUE	Triple Split Shot		140	hybrid	nonelem	2000			buff type=hpGain range=allAllies; buff type=ampPhysAbilities range=allAllies; buff type=ampMagAbilities range=allAllies
+uw_lucia_total_eclipse	Lucia	ultimate	Total Eclipse	TRUE	Radiant Force		140	hybrid	nonelem	2000			gauge type=overspeed range=allAllies when=overspeedOff; buff type=haste range=allAllies
+uw_angeal_ultimate_type_90_longsword	Angeal	ultimate	Ultimate Type-90 Longsword	TRUE	Unyielding Keeper		140	mag	heal	5			buff type=pdefUp tier=2 range=allAllies; buff type=mdefUp tier=2 range=allAllies; heal range=allAllies
+uw_angeal_balmung	Angeal	ultimate	Balmung	TRUE	Blinking Slicer		140	hybrid	nonelem	2000			buff type=physResistUp range=allAllies; buff type=magResistUp range=allAllies; buff type=veil range=self
+uw_seph_og_ultimate_masamune	Seph OG	ultimate	Ultimate Masamune	TRUE	Ultimate Telluric Fury		140	hybrid	nonelem	1000			debuff type=mdefDown tier=3 range=singleEnemy; buff type=matkUp tier=3 range=self
+uw_seph_og_heaven_s_cloud	Seph OG	ultimate	Heaven's Cloud	TRUE	Meteoric Onslaught		140	hybrid	nonelem	2000			buff type=haste range=self; buff type=exploitWeakness range=self
+gear_cloud_equilibrium	Cloud	gear	Equilibrium	TRUE	Ultra Lightning Rush			mag	nonelem	2000			buff type=exploitWeakness range=self
+gear_cloud_scanner_ensemble	Cloud	gear	Scanner Ensemble	TRUE	Ultra Gyral Slash			phys	earth	2000			buff type=elemDmgUp elem=earth tier=4 range=self
+gear_cloud_the_sable	Cloud	gear	The Sable	TRUE	Ultra Aquatic Wave			mag	water	2000			buff type=elemDmgBonus elem=water range=allAllies
+gear_cloud_classic_dress	Cloud	gear	Classic Dress	TRUE	Ultra Soaring Rose			phys	nonelem	2000			debuff status=torpor range=allEnemies
+gear_barret_sunrise_hakama	Barret	gear	Sunrise Hakama	TRUE	Ultra Sunrise Barrage			phys	nonelem	700			buff type=provoke range=self
+gear_tifa_guardian_corps_uniform_tifa	Tifa	gear	Guardian Corps Uniform (Tifa)	TRUE	Ultra Army of Strikes			mag	ice	2000			buff type=elemDmgUp elem=ice tier=3 range=allAllies
+gear_tifa_battler_ensemble	Tifa	gear	Battler Ensemble	TRUE	Ultra Spinning Wheel Flurry			phys	nonelem	2000			buff type=exploitWeakness range=self
+gear_tifa_golden_flower_kimono	Tifa	gear	Golden Flower Kimono	TRUE	Ultra Golden Featherstrike			phys	nonelem	2000			buff type=elemDmgUp elem=fire tier=3 range=allAllies; debuff type=elemResistDown elem=fire tier=3 range=singleEnemy
+gear_tifa_festive_style	Tifa	gear	Festive Style	TRUE	Ultra Planet's Flaming Fist			phys	fire	2000			debuff status=torpor range=singleEnemy
+gear_tifa_elegant_dress	Tifa	gear	Elegant Dress	TRUE	Ultra Spiral Tremor			mag	earth	2000			
+gear_aerith_guardian_corps_uniform_aerith	Aerith	gear	Guardian Corps Uniform (Aerith)	TRUE	Ultra Enhancing Rose			mag	heal	10			amp target=buff tier=1 maxTier=4 range=allAllies; heal range=allAllies
+gear_aerith_garb_of_the_possessed	Aerith	gear	Garb of the Possessed	TRUE	Ultra Ripping Twister			phys	nonelem	1000			buff type=exploitWeakness range=allAllies value=30
+gear_aerith_festive_dress	Aerith	gear	Festive Dress	TRUE	Ultra Planet's Prayer			mag	heal	50			heal range=allAllies
+gear_aerith_gorgeous_dress	Aerith	gear	Gorgeous Dress	TRUE	Ultra Luminous Bloom			mag	nonelem	1000			debuff type=elemDmgRcvdUp elem=fire range=allEnemies
+gear_yuffie_savior_ensemble	Yuffie	gear	Savior Ensemble	TRUE	Ultra Circling Doom			phys	nonelem	2000			debuff type=elemWeakness elem=earth range=singleEnemy
+gear_yuffie_heirloom_kimono	Yuffie	gear	Heirloom Kimono	TRUE	Ultra Calligraphy: Dawn			mag	nonelem	2000			buff type=patkUp tier=3 range=allAllies
+gear_yuffie_moogle_hat_and_cape	Yuffie	gear	Moogle Hat & Cape	TRUE	Ultra Rumbling Thunder Slash			phys	lightning	2000			buff type=exploitWeakness range=self
+gear_vincent_auditing_uniform	Vincent	gear	Auditing Uniform	TRUE	Ultra Turbulent Dharma			phys	wind	2000			buff type=elemDmgUp elem=wind tier=4 range=self
+gear_vincent_chaos	Vincent	gear	Chaos	TRUE	Ultra Terminal Sentence			phys	nonelem	2000			buff type=magWeaponBoost range=self; buff type=physWeaponBoost range=self
+gear_vincent_the_immaculate	Vincent	gear	The Immaculate	TRUE	Ultra Sunder Earth			phys	earth	2000			debuff type=singleTgtPhysDmgRcvdUp range=allEnemies
+gear_vincent_infiltration_style	Vincent	gear	Infiltration Style	TRUE	Ultra Certain End			phys	nonelem	2000			buff type=elemDmgBonus elem=earth range=allAllies
+gear_glenn_patissier_style	Glenn	gear	Patissier Style	TRUE	Ultra Baked Chocolate Rush			mag	fire	1000			debuff type=mdefDown tier=3 range=singleEnemy; buff type=provoke range=self
+gear_glenn_garish_hakama	Glenn	gear	Garish Hakama	TRUE	Ultra Haphazard Strikes			mag	nonelem	1000			debuff type=singleTgtMagDmgRcvdUp range=singleEnemy
+gear_matt_physician_s_hakama	Matt	gear	Physician's Hakama	TRUE	Ultra Luminous Excision			mag	nonelem	1000			buff type=elemWeaponBoost elem=water range=allAllies
+gear_cid_holidays_attire	Cid	gear	Holidays Attire	TRUE	Ultra Holidays Spark			phys	lightning	1500			gauge type=command range=self; debuff type=pdefDown tier=3 range=singleEnemy
+gear_cid_patissier_frock	Cid	gear	Patissier Frock	TRUE	Ultra Icicle Candy			phys	ice	1000			buff type=elemDmgUp elem=ice tier=3 range=allAllies; buff type=hpGain range=allAllies
+gear_seph_og_ruler_of_the_planet	Seph OG	gear	Ruler of the Planet	TRUE	Ultra Telluric Fury			phys	nonelem	2000			debuff type=elemResistDown elem=fire tier=3 range=singleEnemy
+gear_seph_og_one_with_the_blade	Seph OG	gear	One with the Blade	TRUE	Ultra Flash of Ruin			mag	nonelem	2000			debuff type=enfeeble range=allEnemies
+gear_seph_og_conqueror_of_the_planet	Seph OG	gear	Conqueror of the Planet	TRUE	Ultra Planet's Purple Lightning			mag	lightning	2000			gauge type=overspeed range=self when=overspeedOff
+gear_seph_og_polygon_sephiroth	Seph OG	gear	Polygon Sephiroth	TRUE	Ultra Telluric Fury			phys	nonelem	2000			debuff type=elemResistDown elem=fire tier=3 range=singleEnemy
+gear_seph_og_omega_style	Seph OG	gear	Omega Style	TRUE	Ultra Cryostasis			mag	ice	2000			debuff type=elemDmgRcvdUp elem=ice range=allEnemies
+wpn_sephiroth_cerulean_sky	Sephiroth	gacha	Cerulean Sky	TRUE	Blue Triad++	10	140	phys	wind	1340			debuff type=pdefDown tier=3 range=allEnemies; debuff type=enfeeble range=allEnemies when=selfHpGe50; buff type=hpGain range=allAllies when=firstUse; gauge type=gearUses range=self when=firstUse
+wpn_cloud_chevron_blade	Cloud	gacha	Chevron Blade	TRUE	Devastating Cyclone++	10	140	phys	wind	900	mult=1.3 when=singleTarget		buff type=patkUp tier=3 range=allAllies; buff type=elemWeaponBoost elem=wind range=allAllies when=selfHpGe50
+wpn_vincent_chrome_death_penalty	Vincent	gacha	Chrome Death Penalty	TRUE	Terminal Sentence++	10	140	phys	nonelem	1340			buff type=elemWeaponBoost elem=fire range=allAllies value=35; buff type=elemWeaponBoost elem=earth range=allAllies value=35; buff type=elemWeaponBoost elem=wind range=allAllies value=35; gauge type=gearUses range=self when=firstUse
+wpn_angeal_master_tonberrys_blade	Angeal	event	Master Tonberry's Blade	TRUE	Solid Bravery++	10	140		heal	13			buff type=patkUp tier=2 range=self; buff type=regen range=self
+wpn_cloud_neo_bahamut_greatsword	Cloud	event	Neo Bahamut Greatsword	TRUE	Deblizzara Surge A++	10	140	mag	nonelem	240			debuff type=elemResistDown elem=ice tier=2 range=allEnemies
+wpn_tifa_riding_gloves	Tifa	gacha	Riding Gloves	TRUE	Freezing Drive++	10	140	phys	ice	1340			debuff type=elemDmgRcvdUp elem=ice range=allEnemies value=50
+wpn_angeal_sea_dragon_greatsword	Angeal	event	Sea Dragon Greatsword	TRUE	Dewatera Surge++	10	140	mag	nonelem	360			debuff type=elemResistDown elem=water tier=2 range=allEnemies
+wpn_angeal_festive_blade	Angeal	limited	Festive Blade	TRUE	Planet's Thunderstrike++	10	140	mag	lightning	920			buff type=provoke range=self; buff type=elemWeaponBoost elem=lightning range=allAllies value=35; buff type=elemDmgUp elem=lightning tier=3 range=allAllies
+wpn_tifa_metal_knuckles	Tifa	gacha	Metal Knuckles	TRUE	Knuckle Pulverize++	10	140	mag	nonelem	1340		spade|diamond	buff type=magAtbConservation range=allAllies; buff type=matkUp tier=3 range=allAllies; buff type=ampMagAbilities range=self when=custom:spade; buff type=magicInterruptUp range=allAllies mode=passive when=custom:diamond
+wpn_zack_wheel_edge	Zack	gacha	Wheel Edge	TRUE	Hydro Cleave++	10	140	phys	water	1340		heart|diamond	debuff type=elemDmgRcvdUp elem=water range=singleEnemy; dmg arch=phys elem=water mod=1680 when=custom:heart; buff type=elemInterruptUp elem=water range=allAllies mode=passive when=custom:diamond
+uw_barret_battle_cry	Barret	ultimate	Battle Cry	TRUE	Quad Annihilation		140	hybrid	nonelem	1000			debuff type=singleTgtPhysDmgRcvdUp value=80 range=allEnemies; debuff type=singleTgtMagDmgRcvdUp value=80 range=allEnemies; buff type=veil value=100 range=allAllies; buff type=haste range=allAllies
+gear_cloud_ac_mode	Cloud	gear	AC Mode	TRUE									
+gear_yuffie_ac_outfit	Yuffie	gear	AC Outfit	TRUE									
+gear_tifa_ac_style	Tifa	gear	AC Style	TRUE									
+gear_tifa_amarant_s_guise	Tifa	gear	Amarant's Guise	TRUE									
+gear_sephiroth_banesword_style	Sephiroth	gear	Banesword Style	TRUE									
+gear_sephiroth_cirrus_hakama	Sephiroth	gear	Cirrus Hakama	TRUE	Ultra Blue Triad			phys	wind	2000			debuff type=elemDmgRcvdUp elem=wind range=singleEnemy
+gear_seph_og_corruptor_of_the_planet	Seph OG	gear	Corruptor of the Planet	TRUE									
+gear_lucia_desperado_chic	Lucia	gear	Desperado Chic	TRUE									
+gear_glenn_desperado_mantle	Glenn	gear	Desperado Mantle	TRUE									
+gear_matt_desperado_style	Matt	gear	Desperado Style	TRUE									
+gear_cloud_erdrick_s_armour	Cloud	gear	Erdrick's Armour	TRUE									
+gear_angeal_festive_suit	Angeal	gear	Festive Suit	TRUE	Ultra Planet's Thunderstrike			mag	lightning	1000			buff type=physResistUp range=self; buff type=magResistUp range=self; buff type=hpGain range=allAllies
+gear_vincent_galian_beast_mantle	Vincent	gear	Galian Beast Mantle	TRUE									
+gear_sephiroth_garb_of_the_world_ender	Sephiroth	gear	Garb of the World-Ender	TRUE	Ultra Dark Manifestation			mag	nonelem	2000			debuff type=elemWeakness elem=water range=singleEnemy
+gear_angeal_ghost_robe	Angeal	gear	Ghost Robe	TRUE									
+gear_red_xiii_great_sabrecat	Red XIII	gear	Great Sabrecat	TRUE									
+gear_zack_heavy_shield_armor	Zack	gear	Heavy Shield Armor	TRUE	Ultra X-Gale			mag	wind	2000			buff type=elemDmgUp elem=wind tier=3 range=allAllies; buff type=hpGain range=allAllies
+gear_sephiroth_knight_of_etro	Sephiroth	gear	Knight of Etro	TRUE	Ultra Smite			phys	water	2000			buff type=ampPhysAbilities range=self
+gear_cait_sith_nocturne_jacket	Cait	gear	Nocturne Jacket	TRUE	Ultra Meow Meow Typhoon			mag	wind	1000			buff type=matkUp tier=3 range=allAllies; buff type=pdefUp tier=3 range=allAllies
+gear_red_xiii_patissier_outfit	Red XIII	gear	Patissier Outfit	TRUE	Ultra Whisking Claw			phys	nonelem	1000			buff type=haste range=allAllies
+gear_aerith_pink_mermaid_beachwear	Aerith	gear	Pink Mermaid Beachwear	TRUE									
+gear_red_xiii_pirate_navigator	Red XIII	gear	Pirate Navigator	TRUE									
+gear_cloud_polygon_cloud	Cloud	gear	Polygon Cloud	TRUE									
+gear_zack_polygon_zack	Zack	gear	Polygon Zack	TRUE									
+gear_sephiroth_remnant_suit	Sephiroth	gear	Remnant Suit	TRUE									
+gear_angeal_resort_style	Angeal	gear	Resort Style	TRUE	Ultra Torque Slash			phys	nonelem	700			buff type=veil range=allAllies
+gear_tifa_rider_jacket	Tifa	gear	Rider Jacket	TRUE	Ultra Freezing Drive			phys	ice	2000			buff type=elemWeaponBoost elem=ice range=allAllies
+gear_tifa_shining_spirit_beachwear	Tifa	gear	Shining Spirit Beachwear	TRUE									
+gear_lucia_shinra_ceremonial_uniform	Lucia	gear	Shinra Ceremonial Uniform	TRUE									
+gear_glenn_snow_style	Glenn	gear	Snow Style	TRUE									
+gear_aerith_supreme_sage_garb	Aerith	gear	Supreme Sage Garb	TRUE									
+gear_zack_surfer_look	Zack	gear	Surfer Look	TRUE									
+gear_zack_zenithian_armour	Zack	gear	Zenithian Armour	TRUE									
+wpn_barret_companion_arm	Barret	gacha	Companion Arm	TRUE	Overheating Bash++	10	140	phys	fire	780	mult=2 when=selfHpEq100	spade|diamond	buff type=veil value=10 range=allAllies; buff type=exploitWeakness value=40 range=allAllies when=custom:none&selfHpGe50; gauge type=gearUses value=1 range=self when=firstUse; buff type=patkBoost value=40 range=allAllies when=custom:spade; buff type=physWeaponBoost value=35 range=allAllies when=custom:spade
+wpn_red_xiii_super_sleuth_collar	Red XIII	gacha	Super Sleuth Collar	TRUE	Case Solved++	10	140	mag	heal	47		spade|diamond	buff type=enliven range=allAllies; buff type=pdefUp tier=2 range=allAllies when=selfHpGe50; heal range=allAllies
+gear_tifa_zangan_gi	Tifa	gear	Zangan Gi	TRUE	Ultra Pulverizing Knuckle			mag	nonelem	2000			debuff type=singleTgtMagDmgRcvdUp value=60 range=allEnemies
+gear_red_xiii_super_sleuth_cape	Red XIII	gear	Super Sleuth Cape	TRUE	Ultra Case Solved			mag	heal	40			amp target=buff tier=1 maxTier=4 range=allAllies; heal range=allAllies

@@ -1490,6 +1490,23 @@ export function recommendTeamsGrid(
 		return anchor ? anchor.lo.dps || 0 : 0;
 	}
 
+	// A non-anchor member (support/tank) that sustains DPS equal to the anchor's
+	// is really a second DPS wearing a utility hat. Flag it as "DPS · <role>" for
+	// display only; roleKind stays untouched so coverage/damage math is unaffected.
+	function reclassifyCoDps(loadouts) {
+		const anchor = loadouts.find(
+			(m) => m.roleKind === "dps" || m.roleKind === "dpsHealer",
+		);
+		const anchorDps = anchor?.lo.dps || 0;
+		if (anchorDps <= 0) return;
+		loadouts.forEach((m) => {
+			if (m.roleKind === "dps" || m.roleKind === "dpsHealer") return;
+			if ((m.lo.dps || 0) < anchorDps) return;
+			const secondary = (m.role || "Support").replace(/^DPS · /, "");
+			m.role = `DPS · ${secondary}`;
+		});
+	}
+
 	function activeCastCount(lo) {
 		return loadoutSlots(lo).reduce((count, item) => {
 			if (!item?.capabilities) return count;
@@ -1669,6 +1686,7 @@ export function recommendTeamsGrid(
 		loadouts.forEach((m) => {
 			m.lo.dps = recomputeLoadoutDps(m.lo, teamSignals);
 		});
+		reclassifyCoDps(loadouts);
 		const theoretical = calculateTeamTheoreticalDamage({
 			loadouts,
 			teamSignals,
